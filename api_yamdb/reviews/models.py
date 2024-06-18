@@ -29,9 +29,7 @@ class Title(models.Model):
     name = models.CharField(max_length=256, verbose_name='Название')
     year = models.IntegerField(verbose_name='Год выпуска')
     description = models.CharField(max_length=256, verbose_name='Описание')
-    genre = models.ManyToManyField(
-        Genre, through='TitleGenre', verbose_name='Жанр'
-    )
+    genre = models.ManyToManyField(Genre, through='TitleGenre', verbose_name='Жанр')
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, verbose_name='Категория'
     )
@@ -56,3 +54,21 @@ class TitleGenre(models.Model):
 
     def __str__(self) -> str:
         return f'{self.title}, {self.genre}'
+
+
+class Review(models.Model):
+    title = models.ForeignKey(Title, on_delete=models.CASCADE, related_name='reviews')
+    text = models.CharField(verbose_name='Текст отзыва')
+    #!!! author = models.ForeignKey(
+    #     User, on_delete=models.CASCADE, related_name='reviews')
+    score = models.ImageField()
+    pub_date = models.DateTimeField(
+        'Дата добавления', auto_now_add=True)
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=models.Q(score__gte=1) & models.Q(score__lt=10),
+                name="A score value is valid between 1 and 10",
+            )
+        ]
+    
