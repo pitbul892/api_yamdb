@@ -58,10 +58,10 @@ class TitleGenre(models.Model):
 
 class Review(models.Model):
     title = models.ForeignKey(Title, on_delete=models.CASCADE, related_name='reviews')
-    text = models.CharField(verbose_name='Текст отзыва')
+    text = models.CharField(max_length=256, verbose_name='Текст отзыва')
     #!!! author = models.ForeignKey(
     #     User, on_delete=models.CASCADE, related_name='reviews')
-    score = models.ImageField()
+    score = models.IntegerField()
     pub_date = models.DateTimeField(
         'Дата добавления', auto_now_add=True)
     class Meta:
