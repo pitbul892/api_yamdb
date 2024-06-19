@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 # https://docs.djangoproject.com/en/3.2/ref/models/fields/#enumeration-types
 
+
 class MyUser(AbstractUser):
     """
     Кастомизированная модель пользователя.
@@ -23,3 +24,9 @@ class MyUser(AbstractUser):
     )
     email = models.EmailField(_('email address'), max_length=254)
     bio = models.TextField('biography', blank=True)
+
+    def is_admin(self):
+        return self.role == 'admin'
+
+    def is_moderator(self):
+        return self.role == 'moderator'
