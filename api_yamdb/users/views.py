@@ -78,11 +78,8 @@ def create_token(request):
             username=request.data['username'],
             confirmation_code=request.data['confirmation_code']
         )
-        # print('user:', user)
     except Exception:
-        # serializer = TokenSerializer(data=request.data)
         return Response({}, status=status.HTTP_400_BAD_REQUEST)
-        # return Response(serializer.initial_data, status=status.HTTP_404_NOT_FOUND)
     else:
         serializer = TokenSerializer(data=request.data)
     if serializer.is_valid():
