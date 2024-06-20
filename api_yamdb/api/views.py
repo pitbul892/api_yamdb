@@ -1,9 +1,49 @@
-from rest_framework import filters, mixins, viewsets
+from django.db.models import Avg
+from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
+from reviews.models import Category, Genre, Review, Title
 
-from reviews.models import Review
-from .serializers import ReviewSerializer
+from .filters import TitleFilter
+from .mixin import MixinViewSet
+from .permissions import IsAdminOrReadOnly
+from .serializers import CategorySerializer, GenreSerializer, ReviewSerializer, TitleSerializer
+
+
+class CategoryViewSet(MixinViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminOrReadOnly]
+
+
+class GenreViewSet(MixinViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = [IsAdminOrReadOnly]
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    queryset = Title.objects.annotate(rating=Avg('reviews__score')).order_by(
+        'rating'
+    )
+    serializer_class = TitleSerializer
+    permission_classes = [IsAdminOrReadOnly]
+    pagination_class = LimitOffsetPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = TitleFilter
+
+    def perform_create(self, serializer):
+        category = get_object_or_404(
+            Category, slug=self.request.data.get('category')
+        )
+        genre = Genre.objects.filter(
+            slug__in=self.request.data.getlist('genre')
+        )
+        serializer.save(category=category, genre=genre)
+
+    def perform_update(self, serializer):
+        self.perform_create(serializer)
 
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
@@ -11,8 +51,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_title(self):
         title_id = self.kwargs.get('title_id')
-        # title = Title.objects.get(id=title_id)
-        # return title
+        title = Title.objects.get(id=title_id)
+        return title
     
     def get_queryset(self):
         queryset = self.get_title().reviews.all()
