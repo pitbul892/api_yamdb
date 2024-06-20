@@ -16,6 +16,14 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.views.generic import TemplateView
+from django.urls import include, path
+from rest_framework.routers import DefaultRouter
+
+from users.views import send_confirmation_code, create_token, me
+from users.views import UsersViewSet
+
+router = DefaultRouter()
+router.register('api/v1/users', UsersViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -24,4 +32,8 @@ urlpatterns = [
         TemplateView.as_view(template_name='redoc.html'),
         name='redoc'
     ),
+    path('api/v1/auth/signup/', send_confirmation_code),
+    path('api/v1/auth/token/', create_token),
+    path('', include(router.urls)),
+    path('api/v1/users/me/', me),
 ]
