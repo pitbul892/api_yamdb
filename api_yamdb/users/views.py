@@ -4,22 +4,13 @@ import base64
 
 from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
-from django.shortcuts import render
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import filters
-from rest_framework import mixins
-from rest_framework import viewsets
-from rest_framework import permissions
-from rest_framework import status
-from rest_framework_simplejwt.tokens import AccessToken
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
-from .serializers import SignupSerializer
-from .serializers import TokenSerializer
-from .serializers import UsersSerializer
-from .serializers import UsersMeSerializer
-
+from .serializers import (SignupSerializer, TokenSerializer,
+                          UsersMeSerializer, UsersSerializer)
 
 SUBJECT = 'Your confirmation code'
 FROM = 'no-reply@example.com'
@@ -96,6 +87,7 @@ def create_token(request):
 
 class UsersViewSet(viewsets.ModelViewSet):
     """Viewset for users."""
+
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = (permissions.IsAuthenticated,)
@@ -103,6 +95,7 @@ class UsersViewSet(viewsets.ModelViewSet):
 
 class UsersMeViewSet(viewsets.ModelViewSet):
     """Viewset for me."""
+
     queryset = User.objects.all()
     serializer_class = UsersMeSerializer
     permission_classes = (permissions.IsAuthenticated,)
