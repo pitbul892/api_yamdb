@@ -18,7 +18,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import SignupSerializer
 from .serializers import TokenSerializer
 from .serializers import UsersSerializer
-from .serializers import UserMeSerializer
+from .serializers import UsersMeSerializer
 
 
 SUBJECT = 'Your confirmation code'
@@ -81,7 +81,6 @@ def create_token(request):
         except Exception:
             return Response({}, status=status.HTTP_404_NOT_FOUND)
         else:
-        
             try:
                 serializer = TokenSerializer(user, data=request.data)
                 if user.confirmation_code == request.data['confirmation_code']:
@@ -95,7 +94,6 @@ def create_token(request):
     return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class UsersViewSet(viewsets.ModelViewSet):
     """Viewset for users."""
     queryset = User.objects.all()
@@ -103,18 +101,28 @@ class UsersViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
 
+class UsersMeViewSet(viewsets.ModelViewSet):
+    """Viewset for me."""
+    queryset = User.objects.all()
+    serializer_class = UsersMeSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+
 @api_view(['GET', 'PATCH'])
 def me(request):
     try:
-        user = User.objects.get(
-            username=request.data['username']
-        )
-        print('user:', user)
+        user = User.objects.get(pk=request.user.id)
     except Exception:
         return Response({}, status=status.HTTP_404_NOT_FOUND)
     else:
-        serializer = UserMeSerializer(user, data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if request.method == 'GET':
+            serializer = UsersMeSerializer(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        elif request.method == 'PATCH':
+            serializer = UsersMeSerializer(user, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response({}, status=status.HTTP_400_BAD_REQUEST)

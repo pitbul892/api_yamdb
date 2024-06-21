@@ -28,7 +28,7 @@ class UsersSerializer(serializers.ModelSerializer):
         )
 
 
-class UserMeSerializer(serializers.ModelSerializer):
+class UsersMeSerializer(serializers.ModelSerializer):
     """Serializer for users."""
 
     # role = serializers.CharField(read_only=True)

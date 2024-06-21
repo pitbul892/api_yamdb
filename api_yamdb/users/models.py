@@ -25,3 +25,9 @@ class MyUser(AbstractUser):
         max_length=256,
         blank=True,
     )
+
+    def is_admin(self):
+        return self.role == 'admin'
+
+    def is_moderator(self):
+        return self.role == 'moderator'
