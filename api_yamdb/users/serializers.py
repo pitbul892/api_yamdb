@@ -31,7 +31,7 @@ class UsersSerializer(serializers.ModelSerializer):
 class UsersMeSerializer(serializers.ModelSerializer):
     """Serializer for users."""
 
-    # role = serializers.CharField(read_only=True)
+    role = serializers.CharField(read_only=True)
 
     class Meta:
         model = User
