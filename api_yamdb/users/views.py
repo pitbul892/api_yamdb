@@ -73,25 +73,27 @@ def send_confirmation_code(request):
 
 @api_view(['POST'])
 def create_token(request):
-    print('*' * 30)
-    print('username:', request.data['username'])
-    print('confirmation_code:', request.data['confirmation_code'])
-    print('*' * 30)
-    try:
-        user = User.objects.get(
-            username=request.data['username'],
-            # confirmation_code=request.data['confirmation_code']
-        )
-    except Exception:
-        return Response({}, status=status.HTTP_404_NOT_FOUND)
-    else:
-        if user.confirmation_code == request.data['confirmation_code']:
-            serializer = TokenSerializer(user, data=request.data)
-            if serializer.is_valid():
-                token = get_token_for_user(user)
-                return Response(token, status=status.HTTP_200_OK)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    if 'username' in request.data and 'confirmation_code' in request.data:
+        try:
+            user = User.objects.get(
+                username=request.data['username'],
+            )
+        except Exception:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+        else:
+        
+            try:
+                serializer = TokenSerializer(user, data=request.data)
+                if user.confirmation_code == request.data['confirmation_code']:
+                    if serializer.is_valid():
+                        token = get_token_for_user(user)
+                        return Response(token, status=status.HTTP_200_OK)
+                    return Response(
+                        serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            except Exception:
+                pass
     return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class UsersViewSet(viewsets.ModelViewSet):
