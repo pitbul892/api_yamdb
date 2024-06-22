@@ -4,7 +4,6 @@ import base64
 
 from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
-from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import filters
@@ -12,13 +11,15 @@ from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework_simplejwt.tokens import AccessToken
+from rest_framework import generics
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.pagination import PageNumberPagination
 
 from .serializers import SignupSerializer
 from .serializers import TokenSerializer
 from .serializers import UsersSerializer
 from .serializers import UsersMeSerializer
+from .permissions import RoleAdminOrSuperuserOnly
 
 
 SUBJECT = 'Your confirmation code'
@@ -35,7 +36,6 @@ def create_confirmation_code(data):
 
 def get_token_for_user(user):
     refresh = RefreshToken.for_user(user)
-
     return {
         'access': str(refresh.access_token),
     }
@@ -94,39 +94,69 @@ def create_token(request):
     return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 
-class UsersViewSet(viewsets.ModelViewSet):
-    """Viewset for users."""
+@api_view(['GET', 'PATCH', 'DELETE'])
+def username_endpoint(request, username):
+    if request.auth:
+        if request.user.is_admin() or request.user.is_superuser:
+            try:
+                user = User.objects.get(username=username)
+            except Exception:
+                return Response({}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                serializer = UsersSerializer(user)
+                if request.method == 'GET':
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                if request.method == 'DELETE':
+                    user.delete()
+                    return Response({}, status=status.HTTP_204_NO_CONTENT)
+                if request.method == 'PATCH':
+                    serializer = UsersSerializer(
+                        user,
+                        data=request.data,
+                        partial=True
+                    )
+                    if serializer.is_valid():
+                        serializer.save()
+                        return Response(
+                            serializer.data, status=status.HTTP_200_OK)
+                    return Response(
+                        serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({}, status=status.HTTP_403_FORBIDDEN)
+    return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class UserListCreateView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = UsersSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-
-
-class UsersMeViewSet(viewsets.ModelViewSet):
-    """Viewset for me."""
-    queryset = User.objects.all()
-    serializer_class = UsersMeSerializer
-    permission_classes = (permissions.IsAuthenticated,)
+    permission_classes = (
+        permissions.IsAuthenticated,
+        RoleAdminOrSuperuserOnly
+    )
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
 
 
 @api_view(['GET', 'PATCH'])
 def me(request):
-    try:
-        user = User.objects.get(pk=request.user.id)
-    except Exception:
-        return Response({}, status=status.HTTP_404_NOT_FOUND)
-    else:
-        if request.method == 'GET':
-            serializer = UsersMeSerializer(user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        elif request.method == 'PATCH':
-            serializer = UsersMeSerializer(
-                user,
-                data=request.data,
-                partial=True
-            )
-            if serializer.is_valid():
-                serializer.save()
+    if request.auth:
+        try:
+            user = User.objects.get(pk=request.user.id)
+        except Exception:
+            return Response({}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            if request.method == 'GET':
+                serializer = UsersMeSerializer(user)
                 return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    return Response({}, status=status.HTTP_400_BAD_REQUEST)
+            elif request.method == 'PATCH':
+                serializer = UsersMeSerializer(
+                    user,
+                    data=request.data,
+                    partial=True
+                )
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(
+                    serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+    return Response({}, status=status.HTTP_401_UNAUTHORIZED)
