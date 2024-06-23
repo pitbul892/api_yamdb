@@ -27,12 +27,12 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Avg('reviews__score')).order_by(
         'rating'
     )
-    # queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def perform_create(self, serializer):
         category = get_object_or_404(
