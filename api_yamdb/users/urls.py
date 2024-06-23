@@ -8,9 +8,9 @@ from .views import UserListCreateView
 
 
 urlpatterns = [
-    path('signup/', send_confirmation_code),
-    path('token/', create_token),
-    path('me/', me),
-    path('<str:username>/', username_endpoint),
-    path('', UserListCreateView.as_view()),
+    path('auth/signup/', send_confirmation_code),
+    path('auth/token/', create_token),
+    path('users/me/', me),
+    path('users/<str:username>/', username_endpoint),
+    path('users/', UserListCreateView.as_view()),
 ]
