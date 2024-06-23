@@ -1,15 +1,16 @@
-from django.urls import include, path
-from rest_framework import routers
+from django.urls import path
 
-from users.views import (create_token, me,
-                         send_confirmation_code, UsersViewSet)
+from .views import send_confirmation_code
+from .views import create_token
+from .views import me
+from .views import username_endpoint
+from .views import UserListCreateView
 
-router = routers.DefaultRouter()
-router.register('users', UsersViewSet)
 
 urlpatterns = [
-    path('v1/auth/signup/', send_confirmation_code),
-    path('v1/auth/token/', create_token),
-    path('v1/users/me/', me),
-    path('v1/', include(router.urls)),
+    path('auth/signup/', send_confirmation_code),
+    path('auth/token/', create_token),
+    path('users/me/', me),
+    path('users/<str:username>/', username_endpoint),
+    path('users/', UserListCreateView.as_view()),
 ]
