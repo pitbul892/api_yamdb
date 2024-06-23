@@ -20,7 +20,13 @@ from .serializers import TokenSerializer
 from .serializers import UsersSerializer
 from .serializers import UsersMeSerializer
 from .permissions import RoleAdminOrSuperuserOnly
+from rest_framework import permissions, status, viewsets
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
+from .serializers import (SignupSerializer, TokenSerializer,
+                          UsersMeSerializer, UsersSerializer)
 
 SUBJECT = 'Your confirmation code'
 FROM = 'no-reply@example.com'
@@ -134,6 +140,20 @@ class UserListCreateView(generics.ListCreateAPIView):
     )
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
+class UsersViewSet(viewsets.ModelViewSet):
+    """Viewset for users."""
+
+    queryset = User.objects.all()
+    serializer_class = UsersSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+
+class UsersMeViewSet(viewsets.ModelViewSet):
+    """Viewset for me."""
+
+    queryset = User.objects.all()
+    serializer_class = UsersMeSerializer
+    permission_classes = (permissions.IsAuthenticated,)
 
 
 @api_view(['GET', 'PATCH'])
