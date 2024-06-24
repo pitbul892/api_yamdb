@@ -77,38 +77,3 @@ class TitleGenre(models.Model):
 
     def __str__(self) -> str:
         return f'{self.title}, {self.genre}'
-<<<<<<< HEAD
-=======
-
-
-class Review(models.Model):
-    title = models.ForeignKey(
-        Title,
-        on_delete=models.CASCADE, related_name='reviews'
-    )
-    text = models.TextField()
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE, related_name='reviews',
-    )
-    score = models.PositiveSmallIntegerField(
-        null=True,
-        validators=[
-            MaxValueValidator(10, message='Оценка должна быть не выше 10'),
-            MinValueValidator(1, message='Оценка должна быть не ниже 1')
-        ]
-    )
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
-
-    class Meta:
-        verbose_name = 'Обзор'
-        verbose_name_plural = 'Обзоры'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['author', 'title'],
-                name='unique_author_title')
-        ]
-
-    def __str__(self):
-        return self.text
->>>>>>> develop
