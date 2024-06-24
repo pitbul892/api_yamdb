@@ -7,8 +7,13 @@ from reviews.models import Category, Genre, Title
 
 from .filters import TitleFilter
 from .mixin import MixinViewSet
-from .permissions import IsAdminOrReadOnly
-from .serializers import CategorySerializer, GenreSerializer, TitleSerializer
+
+from reviews.models import Category, Genre, Review, Title
+
+from .permissions import IsAdminOrReadOnly, IsAuthorModeratorAdminOrAuth
+from .serializers import (
+    CategorySerializer, GenreSerializer, ReviewSerializer, TitleSerializer
+)
 
 
 class CategoryViewSet(MixinViewSet):
@@ -45,3 +50,20 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         self.perform_create(serializer)
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    permission_classes = (IsAuthorModeratorAdminOrAuth,)
+
+    http_method_names = ['get', 'post', 'patch', 'delete',]
+
+    def get_title(self):
+        title_id = self.kwargs.get('title_id')
+        return get_object_or_404(Title, pk=title_id)
+
+    def get_queryset(self):
+        return self.get_title().reviews.all()
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user, title=self.get_title())
