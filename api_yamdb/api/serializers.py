@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from reviews.models import Category, Genre, Title, Review
+<<<<<<<<< Temporary merge branch 1
+from reviews.models import Category, Genre, Title
 from rest_framework.validators import UniqueValidator
 
 
@@ -45,6 +46,8 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Title
+<<<<<<<<< Temporary merge branch 1
+=========
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -72,3 +75,4 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Review
+>>>>>>>>> Temporary merge branch 2
