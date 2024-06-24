@@ -13,7 +13,6 @@ from rest_framework import permissions
 from rest_framework import status
 from rest_framework import generics
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.pagination import PageNumberPagination
 
 from .serializers import SignupSerializer
 from .serializers import TokenSerializer
@@ -23,10 +22,11 @@ from .permissions import RoleAdminOrSuperuserOnly
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import (SignupSerializer, TokenSerializer,
                           UsersMeSerializer, UsersSerializer)
+from .serializers import PatchUserSerializer
 
 SUBJECT = 'Your confirmation code'
 FROM = 'no-reply@example.com'
@@ -43,7 +43,7 @@ def create_confirmation_code(data):
 def get_token_for_user(user):
     refresh = RefreshToken.for_user(user)
     return {
-        'access': str(refresh.access_token),
+        'token': str(refresh.access_token),
     }
 
 
@@ -54,7 +54,6 @@ def send_confirmation_code(request):
             username=request.data['username'],
             email=request.data['email']
         )
-        print('user:', user)
     except Exception:
         serializer = SignupSerializer(data=request.data)
     else:
@@ -116,12 +115,16 @@ def username_endpoint(request, username):
                     user.delete()
                     return Response({}, status=status.HTTP_204_NO_CONTENT)
                 if request.method == 'PATCH':
-                    serializer = UsersSerializer(
+                    serializer = PatchUserSerializer(
                         user,
                         data=request.data,
                         partial=True
                     )
                     if serializer.is_valid():
+                        if 'username' in request.data:
+                            if request.data['username'] == 'me':
+                                return Response(
+                                    {}, status=status.HTTP_400_BAD_REQUEST)
                         serializer.save()
                         return Response(
                             serializer.data, status=status.HTTP_200_OK)
@@ -140,20 +143,6 @@ class UserListCreateView(generics.ListCreateAPIView):
     )
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
-class UsersViewSet(viewsets.ModelViewSet):
-    """Viewset for users."""
-
-    queryset = User.objects.all()
-    serializer_class = UsersSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-
-
-class UsersMeViewSet(viewsets.ModelViewSet):
-    """Viewset for me."""
-
-    queryset = User.objects.all()
-    serializer_class = UsersMeSerializer
-    permission_classes = (permissions.IsAuthenticated,)
 
 
 @api_view(['GET', 'PATCH'])
@@ -174,6 +163,10 @@ def me(request):
                     partial=True
                 )
                 if serializer.is_valid():
+                    if 'username' in request.data:
+                        if request.data['username'] == 'me':
+                            return Response(
+                                {}, status=status.HTTP_400_BAD_REQUEST)
                     serializer.save()
                     return Response(serializer.data, status=status.HTTP_200_OK)
                 return Response(

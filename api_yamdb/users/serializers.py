@@ -28,6 +28,48 @@ class UsersSerializer(serializers.ModelSerializer):
         )
 
 
+class PatchUserSerializer(serializers.ModelSerializer):
+    """Serializer to patch user."""
+
+    username = serializers.CharField(max_length=150, required=True)
+    first_name = serializers.CharField(max_length=150, required=False)
+    last_name = serializers.CharField(max_length=150, required=False)
+    email = serializers.EmailField(max_length=254, required=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+
+    def validate(self, data):
+        if 'username' in data:
+            if data['username'] == 'me':
+                raise serializers.ValidationError(
+                    'Используйте другой username!')
+            try:
+                user = User.objects.get(username=data['username'])
+            except Exception:
+                pass
+            else:
+                raise serializers.ValidationError(
+                    'Используйте другой username!')
+        if 'email' in data:
+            try:
+                user = User.objects.get(email=data['email'])
+            except Exception:
+                pass
+            else:
+                raise serializers.ValidationError(
+                    'Используйте другой email!')
+        return data
+
+
 class UsersMeSerializer(serializers.ModelSerializer):
     """Serializer for users."""
 
