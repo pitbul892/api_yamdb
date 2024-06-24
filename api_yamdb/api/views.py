@@ -7,7 +7,7 @@ from reviews.models import Category, Genre, Review, Title
 
 from .filters import TitleFilter
 from .mixin import MixinViewSet
-from .permissions import IsAdminOrReadOnly, IsAuthorModeratorSuperuserAdminOrAuth
+from .permissions import IsAdminOrReadOnly, IsAuthorModeratorAdminOrAuth
 from .serializers import (
     CategorySerializer, GenreSerializer, ReviewSerializer, TitleSerializer
 )
@@ -51,8 +51,7 @@ class TitleViewSet(viewsets.ModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthorModeratorSuperuserAdminOrAuth,)
-    # pagination_class = PageNumberPagination
+    permission_classes = (IsAuthorModeratorAdminOrAuth,)
 
     http_method_names = ['get', 'post', 'patch', 'delete',]
 

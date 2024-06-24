@@ -9,7 +9,7 @@ class IsAdminOrReadOnly(BasePermission):
         )
 
 
-class IsAuthorModeratorSuperuserAdminOrAuth(BasePermission):
+class IsAuthorModeratorAdminOrAuth(BasePermission):
     def has_permission(self, request, view):
         return (
             request.method in SAFE_METHODS
