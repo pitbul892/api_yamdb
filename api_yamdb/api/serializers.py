@@ -1,6 +1,5 @@
 from rest_framework import serializers
-<<<<<<<<< Temporary merge branch 1
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Genre, Title, Review
 from rest_framework.validators import UniqueValidator
 
 
@@ -46,14 +45,11 @@ class TitleSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Title
-<<<<<<<<< Temporary merge branch 1
-=========
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(
-        read_only=True,
-        default=serializers.CurrentUserDefault()
+        read_only=True, default=serializers.CurrentUserDefault()
     )
     score = serializers.IntegerField()
     title = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -66,13 +62,13 @@ class ReviewSerializer(serializers.ModelSerializer):
     def validate(self, data):
         author = self.context['request'].user
         title = self.context['view'].kwargs.get('title_id')
-        if (self.context['request'].method == 'POST'
-                and Review.objects.filter(
-                author=author, title=title).exists()):
+        if (
+            self.context['request'].method == 'POST'
+            and Review.objects.filter(author=author, title=title).exists()
+        ):
             raise serializers.ValidationError('Отзыв уже существует')
         return data
 
     class Meta:
         fields = '__all__'
         model = Review
->>>>>>>>> Temporary merge branch 2
