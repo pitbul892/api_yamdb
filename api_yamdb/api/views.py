@@ -29,7 +29,6 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(rating=Avg('reviews__score')).order_by(
         'rating'
     )
-    # queryset = Title.objects.all()
     serializer_class = TitleSerializer
     permission_classes = [IsAdminOrReadOnly]
     pagination_class = LimitOffsetPagination
