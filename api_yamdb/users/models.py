@@ -26,8 +26,10 @@ class MyUser(AbstractUser):
         blank=True,
     )
 
+    @property
     def is_admin(self):
         return self.role == 'admin'
 
+    @property
     def is_moderator(self):
         return self.role == 'moderator'
