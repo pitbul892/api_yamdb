@@ -5,6 +5,8 @@ from rest_framework.validators import UniqueValidator
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Serializer for Category."""
+
     name = serializers.CharField(max_length=256)
     slug = serializers.SlugField(
         max_length=50,
@@ -22,6 +24,8 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """Serializer for Genre."""
+
     name = serializers.CharField(max_length=256)
     slug = serializers.SlugField(
         max_length=50,
@@ -39,6 +43,8 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    """Serializer for Title."""
+
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(many=True, read_only=True)
     rating = serializers.IntegerField(read_only=True)
@@ -49,6 +55,8 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Serializer for Review."""
+
     author = serializers.StringRelatedField(
         read_only=True, default=serializers.CurrentUserDefault()
     )
