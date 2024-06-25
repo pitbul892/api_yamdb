@@ -7,6 +7,8 @@ from reviews.models import Category, Comment, Genre, Review, Title
 
 from .filters import TitleFilter
 from .mixin import MixinViewSet
+from reviews.models import Category, Genre, Review, Title
+
 from .permissions import IsAdminOrReadOnly, IsAuthorModeratorAdminOrAuth
 from .serializers import (
     CategorySerializer,
@@ -38,6 +40,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def perform_create(self, serializer):
         category = get_object_or_404(
@@ -57,7 +60,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorModeratorAdminOrAuth,)
 
-    http_method_names = ['get', 'post', 'patch', 'delete',]
+    http_method_names = [
+        'get',
+        'post',
+        'patch',
+        'delete',
+    ]
 
     def get_title(self):
         title_id = self.kwargs.get('title_id')

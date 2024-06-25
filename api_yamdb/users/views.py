@@ -103,7 +103,7 @@ def create_token(request):
 @api_view(['GET', 'PATCH', 'DELETE'])
 def username_endpoint(request, username):
     if request.auth:
-        if request.user.is_admin() or request.user.is_superuser:
+        if request.user.is_admin or request.user.is_superuser:
             try:
                 user = User.objects.get(username=username)
             except Exception:
