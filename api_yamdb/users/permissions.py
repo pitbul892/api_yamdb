@@ -14,4 +14,4 @@ class RoleAdminOrSuperuserOnly(permissions.BasePermission):
         except Exception:
             return Response({}, status=status.HTTP_404_NOT_FOUND)
         else:
-            return user.is_admin() or user.is_superuser
+            return user.is_admin or user.is_superuser
