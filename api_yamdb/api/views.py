@@ -3,13 +3,18 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
-from reviews.models import Category, Genre, Review, Title
+from reviews.models import Category, Genre, Title
 
 from .filters import TitleFilter
 from .mixin import MixinViewSet
+from reviews.models import Category, Genre, Review, Title
+
 from .permissions import IsAdminOrReadOnly, IsAuthorModeratorAdminOrAuth
 from .serializers import (
-    CategorySerializer, GenreSerializer, ReviewSerializer, TitleSerializer
+    CategorySerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    TitleSerializer,
 )
 
 
@@ -34,6 +39,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def perform_create(self, serializer):
         category = get_object_or_404(
@@ -47,12 +53,18 @@ class TitleViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         self.perform_create(serializer)
 
+
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = (IsAuthorModeratorAdminOrAuth,)
 
-    http_method_names = ['get', 'post', 'patch', 'delete',]
+    http_method_names = [
+        'get',
+        'post',
+        'patch',
+        'delete',
+    ]
 
     def get_title(self):
         title_id = self.kwargs.get('title_id')
