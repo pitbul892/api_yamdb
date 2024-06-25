@@ -7,13 +7,11 @@ from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import filters
-from rest_framework import mixins
 from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import generics
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.pagination import PageNumberPagination
 
 from .serializers import SignupSerializer
 from .serializers import TokenSerializer
@@ -23,7 +21,7 @@ from .permissions import RoleAdminOrSuperuserOnly
 from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .serializers import (SignupSerializer, TokenSerializer,
                           UsersMeSerializer, UsersSerializer)
@@ -140,6 +138,8 @@ class UserListCreateView(generics.ListCreateAPIView):
     )
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
+
+
 class UsersViewSet(viewsets.ModelViewSet):
     """Viewset for users."""
 

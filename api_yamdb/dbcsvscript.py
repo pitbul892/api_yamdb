@@ -115,7 +115,7 @@ def main():
         ]
 
     connection.executemany(
-        '''INSERT INTO users_user 
+        '''INSERT INTO users_user
         (id, username, email, role, bio, first_name, last_name)
         VALUES (?, ?, ?, ?, ?, ?, ?);''',
         to_db,
