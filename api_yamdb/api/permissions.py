@@ -2,6 +2,7 @@ from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
 class IsAdminOrReadOnly(BasePermission):
+    """Check Admin or Anonimus."""
 
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS or (
@@ -10,6 +11,8 @@ class IsAdminOrReadOnly(BasePermission):
 
 
 class IsAuthorModeratorAdminOrAuth(BasePermission):
+    """Check Moderator, Admin, Autor and Auten for GET."""
+
     def has_permission(self, request, view):
         return request.method in SAFE_METHODS or request.user.is_authenticated
 
