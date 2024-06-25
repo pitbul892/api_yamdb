@@ -93,7 +93,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorModeratorAdminOrAuth,)
 
-    http_method_names = ['get', 'post', 'patch', 'delete',]
+    http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_review(self):
         title_id = self.kwargs.get('title_id')
