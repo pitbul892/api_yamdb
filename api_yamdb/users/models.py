@@ -2,8 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-# https://docs.djangoproject.com/en/3.2/ref/models/fields/#enumeration-types
-
 
 class MyUser(AbstractUser):
     """
