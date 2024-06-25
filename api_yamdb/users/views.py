@@ -103,7 +103,7 @@ def create_token(request):
 def username_endpoint(request, username):
     """View-function for 'username/' endpoint."""
     if request.auth:
-        if request.user.is_admin() or request.user.is_superuser:
+        if request.user.is_admin or request.user.is_superuser:
             try:
                 user = User.objects.get(username=username)
             except Exception:
