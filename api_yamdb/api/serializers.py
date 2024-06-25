@@ -51,7 +51,10 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Review
 
+
 class CommentSerializer(serializers.ModelSerializer):
+    """Serializer for Comment."""
+
     author = serializers.StringRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault()

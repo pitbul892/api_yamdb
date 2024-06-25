@@ -5,6 +5,7 @@ from django.db import models
 
 User = get_user_model()
 
+
 class Category(models.Model):
     name = models.CharField(max_length=256, verbose_name='Название категории')
     slug = models.SlugField(max_length=50)
@@ -95,7 +96,9 @@ class Review(models.Model):
     def __str__(self):
         return self.text
 
+
 class Comment(models.Model):
+    """Model Comment."""
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE, related_name='comments'

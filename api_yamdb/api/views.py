@@ -9,7 +9,11 @@ from .filters import TitleFilter
 from .mixin import MixinViewSet
 from .permissions import IsAdminOrReadOnly, IsAuthorModeratorAdminOrAuth
 from .serializers import (
-    CategorySerializer, CommentSerializer, GenreSerializer, ReviewSerializer, TitleSerializer
+    CategorySerializer,
+    CommentSerializer,
+    GenreSerializer,
+    ReviewSerializer,
+    TitleSerializer
 )
 
 
@@ -47,6 +51,7 @@ class TitleViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         self.perform_create(serializer)
 
+
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
@@ -64,7 +69,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
 
+
 class CommentViewSet(viewsets.ModelViewSet):
+    """ViewSet for Comment."""
+
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = (IsAuthorModeratorAdminOrAuth,)
