@@ -52,21 +52,6 @@ class PatchUserSerializer(serializers.ModelSerializer):
             if data['username'] == 'me':
                 raise serializers.ValidationError(
                     'Используйте другой username!')
-            try:
-                user = User.objects.get(username=data['username'])
-            except Exception:
-                pass
-            else:
-                raise serializers.ValidationError(
-                    'Используйте другой username!')
-        if 'email' in data:
-            try:
-                user = User.objects.get(email=data['email'])
-            except Exception:
-                pass
-            else:
-                raise serializers.ValidationError(
-                    'Используйте другой email!')
         return data
 
 

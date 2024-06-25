@@ -7,8 +7,6 @@ from django.contrib.auth import get_user_model
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import filters
-from rest_framework import mixins
-from rest_framework import viewsets
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import generics
@@ -19,7 +17,7 @@ from .serializers import TokenSerializer
 from .serializers import UsersSerializer
 from .serializers import UsersMeSerializer
 from .permissions import RoleAdminOrSuperuserOnly
-from rest_framework import permissions, status, viewsets
+from rest_framework import permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -49,6 +47,7 @@ def get_token_for_user(user):
 
 @api_view(['POST'])
 def send_confirmation_code(request):
+    """Create and send confirmation code."""
     try:
         user = User.objects.get(
             username=request.data['username'],
@@ -78,6 +77,7 @@ def send_confirmation_code(request):
 
 @api_view(['POST'])
 def create_token(request):
+    """Create token for auth user."""
     if 'username' in request.data and 'confirmation_code' in request.data:
         try:
             user = User.objects.get(
@@ -101,6 +101,7 @@ def create_token(request):
 
 @api_view(['GET', 'PATCH', 'DELETE'])
 def username_endpoint(request, username):
+    """View-function for 'username/' endpoint."""
     if request.auth:
         if request.user.is_admin() or request.user.is_superuser:
             try:
@@ -121,13 +122,16 @@ def username_endpoint(request, username):
                         partial=True
                     )
                     if serializer.is_valid():
-                        if 'username' in request.data:
-                            if request.data['username'] == 'me':
-                                return Response(
-                                    {}, status=status.HTTP_400_BAD_REQUEST)
-                        serializer.save()
-                        return Response(
-                            serializer.data, status=status.HTTP_200_OK)
+                        try:
+                            serializer.save()
+                        except Exception:
+                            return Response(
+                                serializer.errors,
+                                status=status.HTTP_400_BAD_REQUEST
+                            )
+                        else:
+                            return Response(
+                                serializer.data, status=status.HTTP_200_OK)
                     return Response(
                         serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response({}, status=status.HTTP_403_FORBIDDEN)
@@ -135,6 +139,7 @@ def username_endpoint(request, username):
 
 
 class UserListCreateView(generics.ListCreateAPIView):
+    """Viewset for 'user/' endpoint."""
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     permission_classes = (
@@ -147,6 +152,7 @@ class UserListCreateView(generics.ListCreateAPIView):
 
 @api_view(['GET', 'PATCH'])
 def me(request):
+    """View-function for 'me/' endpoint."""
     if request.auth:
         try:
             user = User.objects.get(pk=request.user.id)
