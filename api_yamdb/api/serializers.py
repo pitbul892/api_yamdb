@@ -26,7 +26,7 @@ class GenreSerializer(serializers.ModelSerializer):
         max_length=50,
         validators=[
             UniqueValidator(
-                queryset=Category.objects.all(),
+                queryset=Genre.objects.all(),
                 message='Такой slug уже есть',
             )
         ],
