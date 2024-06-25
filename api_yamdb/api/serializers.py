@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from reviews.models import Category, Genre, Title, Review
+
+from reviews.models import Category, Comment, Genre, Review, Title
 from rest_framework.validators import UniqueValidator
 
 
@@ -72,3 +73,17 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Review
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """Serializer for Comment."""
+
+    author = serializers.StringRelatedField(
+        read_only=True,
+        default=serializers.CurrentUserDefault()
+    )
+    review = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        fields = '__all__'
+        model = Comment

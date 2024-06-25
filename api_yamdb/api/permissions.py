@@ -20,3 +20,4 @@ class IsAuthorModeratorAdminOrAuth(BasePermission):
             or request.user.is_moderator
             or request.user.is_admin
         )
+
