@@ -1,30 +1,21 @@
+import base64
 import hashlib
 import time
-import base64
 
-from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
+from rest_framework import filters, generics, permissions, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import filters
-from rest_framework import viewsets
-from rest_framework import permissions
-from rest_framework import status
-from rest_framework import generics
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import SignupSerializer
-from .serializers import TokenSerializer
-from .serializers import UsersSerializer
-from .serializers import UsersMeSerializer
 from .permissions import RoleAdminOrSuperuserOnly
-from rest_framework import permissions, status, viewsets
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-
-from .serializers import (SignupSerializer, TokenSerializer,
-                          UsersMeSerializer, UsersSerializer)
+from .serializers import (
+    SignupSerializer,
+    TokenSerializer,
+    UsersMeSerializer,
+    UsersSerializer,
+)
 
 SUBJECT = 'Your confirmation code'
 FROM = 'no-reply@example.com'

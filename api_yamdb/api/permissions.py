@@ -1,7 +1,7 @@
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
-class IsAdminOrReadOnly(BasePermission):
+class IsAdminUserOrReadOnly(BasePermission):
     """Check Admin or Anonimus."""
 
     def has_permission(self, request, view):
