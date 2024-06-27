@@ -1,22 +1,33 @@
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets
+from rest_framework import filters, mixins, permissions, viewsets
 from rest_framework.pagination import LimitOffsetPagination
 from reviews.models import Category, Comment, Genre, Review, Title
 
 from .filters import TitleFilter
-from .mixin import MixinViewSet
-from reviews.models import Category, Genre, Review, Title
-
-from .permissions import IsAdminOrReadOnly, IsAuthorModeratorAdminOrAuth
+from .permissions import IsAdminUserOrReadOnly, IsAuthorModeratorAdminOrAuth
 from .serializers import (
     CategorySerializer,
     CommentSerializer,
     GenreSerializer,
+    GetTitleSerializer,
+    PostPatchTitleSerializer,
     ReviewSerializer,
-    TitleSerializer
 )
+
+
+class MixinViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """MixinViewSet"""
+
+    lookup_field = 'slug'
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
 
 
 class CategoryViewSet(MixinViewSet):
@@ -24,7 +35,7 @@ class CategoryViewSet(MixinViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminUserOrReadOnly]
 
 
 class GenreViewSet(MixinViewSet):
@@ -32,33 +43,23 @@ class GenreViewSet(MixinViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminUserOrReadOnly]
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """ViewSet for Title."""
 
-    queryset = Title.objects.annotate(rating=Avg('reviews__score')).order_by(
-        'rating'
-    )
-    serializer_class = TitleSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
+    permission_classes = [IsAdminUserOrReadOnly]
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
     http_method_names = ['get', 'post', 'patch', 'delete']
 
-    def perform_create(self, serializer):
-        category = get_object_or_404(
-            Category, slug=self.request.data.get('category')
-        )
-        genre = Genre.objects.filter(
-            slug__in=self.request.data.getlist('genre')
-        )
-        serializer.save(category=category, genre=genre)
-
-    def perform_update(self, serializer):
-        self.perform_create(serializer)
+    def get_serializer_class(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return GetTitleSerializer
+        return PostPatchTitleSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
