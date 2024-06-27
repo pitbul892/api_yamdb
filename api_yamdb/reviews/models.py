@@ -2,7 +2,8 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
-from .validate import validate_year
+from .validate import validate_score, validate_year
+
 
 User = get_user_model()
 
@@ -61,26 +62,35 @@ class Title(models.Model):
         return self.name
 
 
-class Review(models.Model):
+class ReviewCommentBaseModel(models.Model):
+    """BaseModel Review and Comment."""
+
+    text = models.TextField()
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+    )
+    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.text
+
+
+class Review(ReviewCommentBaseModel):
     """Model Review."""
 
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
     )
-    text = models.TextField()
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='reviews',
-    )
     score = models.PositiveSmallIntegerField(
         null=True,
         validators=[
-            MaxValueValidator(10, message='Оценка должна быть не выше 10'),
-            MinValueValidator(1, message='Оценка должна быть не ниже 1'),
+            validate_score,
         ],
     )
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     class Meta:
         verbose_name = 'Отзыв'
@@ -91,27 +101,14 @@ class Review(models.Model):
             )
         ]
 
-    def __str__(self):
-        return self.text
 
-
-class Comment(models.Model):
+class Comment(ReviewCommentBaseModel):
     """Model Comment."""
 
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE, related_name='comments'
     )
-    text = models.TextField()
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='comments',
-    )
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
 
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
-
-    def __str__(self):
-        return self.text

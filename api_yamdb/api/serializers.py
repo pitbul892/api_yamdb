@@ -86,11 +86,13 @@ class ReviewSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     """Serializer for Comment."""
 
-    author = serializers.StringRelatedField(
-        read_only=True, default=serializers.CurrentUserDefault()
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        default=serializers.CurrentUserDefault(),
+        slug_field='username'
     )
-    review = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         fields = '__all__'
         model = Comment
+        read_only_fields = ('review', )
