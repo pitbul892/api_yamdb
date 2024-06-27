@@ -9,6 +9,8 @@ from .views import (
     TitleViewSet,
 )
 
+VERSION = 'v1/'
+
 router_v1 = routers.DefaultRouter()
 router_v1.register('categories', CategoryViewSet)
 router_v1.register('genres', GenreViewSet)
@@ -21,5 +23,5 @@ router_v1.register(
     CommentViewSet, basename='comments'
 )
 urlpatterns = [
-    path('v1/', include(router_v1.urls)),
+    path(VERSION, include(router_v1.urls)),
 ]
