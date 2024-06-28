@@ -1,22 +1,11 @@
+from django.db.models import Avg
 from rest_framework import serializers
-
+from rest_framework.relations import SlugRelatedField
 from reviews.models import Category, Comment, Genre, Review, Title
-from rest_framework.validators import UniqueValidator
 
 
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer for Category."""
-
-    name = serializers.CharField(max_length=256)
-    slug = serializers.SlugField(
-        max_length=50,
-        validators=[
-            UniqueValidator(
-                queryset=Category.objects.all(),
-                message='Такой slug уже есть',
-            )
-        ],
-    )
 
     class Meta:
         model = Category
@@ -26,28 +15,39 @@ class CategorySerializer(serializers.ModelSerializer):
 class GenreSerializer(serializers.ModelSerializer):
     """Serializer for Genre."""
 
-    name = serializers.CharField(max_length=256)
-    slug = serializers.SlugField(
-        max_length=50,
-        validators=[
-            UniqueValidator(
-                queryset=Genre.objects.all(),
-                message='Такой slug уже есть',
-            )
-        ],
-    )
-
     class Meta:
         model = Genre
         fields = ('name', 'slug')
 
 
-class TitleSerializer(serializers.ModelSerializer):
-    """Serializer for Title."""
+class GetTitleSerializer(serializers.ModelSerializer):
+    """Serializer Get for Title."""
 
-    category = CategorySerializer(read_only=True)
-    genre = GenreSerializer(many=True, read_only=True)
-    rating = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(max_length=256)
+    genre = GenreSerializer(many=True)
+    category = CategorySerializer()
+    rating = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = '__all__'
+        model = Title
+
+    def get_rating(self, obj):
+        return Review.objects.filter(title=obj.id).aggregate(Avg('score'))[
+            'score__avg'
+        ]
+
+
+class PostPatchTitleSerializer(serializers.ModelSerializer):
+    """Serializer Post, Patch for Title."""
+
+    name = serializers.CharField(max_length=256)
+    genre = SlugRelatedField(
+        slug_field='slug', queryset=Genre.objects.all(), many=True
+    )
+    category = SlugRelatedField(
+        slug_field='slug', queryset=Category.objects.all()
+    )
 
     class Meta:
         fields = '__all__'
@@ -86,12 +86,13 @@ class ReviewSerializer(serializers.ModelSerializer):
 class CommentSerializer(serializers.ModelSerializer):
     """Serializer for Comment."""
 
-    author = serializers.StringRelatedField(
+    author = serializers.SlugRelatedField(
         read_only=True,
-        default=serializers.CurrentUserDefault()
+        default=serializers.CurrentUserDefault(),
+        slug_field='username'
     )
-    review = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         fields = '__all__'
         model = Comment
+        read_only_fields = ('review', )

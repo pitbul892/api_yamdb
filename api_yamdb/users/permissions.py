@@ -10,7 +10,7 @@ class RoleAdminOrSuperuserOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
         try:
-            user = User.objects.get(pk=request.user.id)
+            user = request.user
         except Exception:
             return Response({}, status=status.HTTP_404_NOT_FOUND)
         else:
