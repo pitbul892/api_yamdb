@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueValidator
 from django.contrib.auth.validators import UnicodeUsernameValidator
 
 
-User = get_user_model()  
+User = get_user_model()
 
 
 class SignupSerializer(serializers.Serializer):
