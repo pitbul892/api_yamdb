@@ -116,10 +116,10 @@ def username_endpoint(request, username):
                 serializer = UsersSerializer(user)
                 if request.method == 'GET':
                     return Response(serializer.data, status=status.HTTP_200_OK)
-                if request.method == 'DELETE':
+                elif request.method == 'DELETE':
                     user.delete()
                     return Response({}, status=status.HTTP_204_NO_CONTENT)
-                if request.method == 'PATCH':
+                elif request.method == 'PATCH':
                     serializer = PatchUserSerializer(
                         user,
                         data=request.data,
