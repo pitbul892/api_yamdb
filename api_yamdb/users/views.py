@@ -102,7 +102,7 @@ def create_token(request):
             pass
     return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
-
+# flake8: noqa: C901
 @api_view(['GET', 'PATCH', 'DELETE'])
 def username_endpoint(request, username):
     """View-function for 'username/' endpoint."""
