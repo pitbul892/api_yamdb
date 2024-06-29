@@ -103,8 +103,25 @@ def create_token(request):
     return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 
+def is_valid(serializer):
+    """Check if serializer iz valid."""
+    if serializer.is_valid():
+        try:
+            serializer.save()
+        except Exception:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        else:
+            return Response(
+                serializer.data, status=status.HTTP_200_OK)
+    return Response(
+        serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['GET', 'PATCH', 'DELETE'])
-def username_endpoint(request, username):    # noqa: C901
+def username_endpoint(request, username):
     """View-function for 'username/' endpoint."""
     if request.auth:
         if request.user.is_admin:
@@ -116,28 +133,16 @@ def username_endpoint(request, username):    # noqa: C901
                 serializer = UsersSerializer(user)
                 if request.method == 'GET':
                     return Response(serializer.data, status=status.HTTP_200_OK)
-                elif request.method == 'DELETE':
+                if request.method == 'DELETE':
                     user.delete()
                     return Response({}, status=status.HTTP_204_NO_CONTENT)
-                elif request.method == 'PATCH':
+                if request.method == 'PATCH':
                     serializer = PatchUserSerializer(
                         user,
                         data=request.data,
                         partial=True
                     )
-                    if serializer.is_valid():
-                        try:
-                            serializer.save()
-                        except Exception:
-                            return Response(
-                                serializer.errors,
-                                status=status.HTTP_400_BAD_REQUEST
-                            )
-                        else:
-                            return Response(
-                                serializer.data, status=status.HTTP_200_OK)
-                    return Response(
-                        serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                    return is_valid(serializer)
         return Response({}, status=status.HTTP_403_FORBIDDEN)
     return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
