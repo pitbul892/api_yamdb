@@ -104,42 +104,39 @@ def create_token(request):
 
 
 @api_view(['GET', 'PATCH', 'DELETE'])
-def username_endpoint(request, username):    # noqa: C901
+def username_endpoint(request, username):
     """View-function for 'username/' endpoint."""
-    if request.auth:
-        if request.user.is_admin:
-            try:
-                user = User.objects.get(username=username)
-            except Exception:
-                return Response({}, status=status.HTTP_404_NOT_FOUND)
-            else:
-                serializer = UsersSerializer(user)
-                if request.method == 'GET':
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                elif request.method == 'DELETE':
-                    user.delete()
-                    return Response({}, status=status.HTTP_204_NO_CONTENT)
-                elif request.method == 'PATCH':
-                    serializer = PatchUserSerializer(
-                        user,
-                        data=request.data,
-                        partial=True
-                    )
-                    if serializer.is_valid():
-                        try:
-                            serializer.save()
-                        except Exception:
-                            return Response(
-                                serializer.errors,
-                                status=status.HTTP_400_BAD_REQUEST
-                            )
-                        else:
-                            return Response(
-                                serializer.data, status=status.HTTP_200_OK)
-                    return Response(
-                        serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    if not request.auth:
+        return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+    if not request.user.is_admin:
         return Response({}, status=status.HTTP_403_FORBIDDEN)
-    return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+    try:
+        user = User.objects.get(username=username)
+    except Exception:
+        return Response({}, status=status.HTTP_404_NOT_FOUND)
+    serializer = UsersSerializer(user)
+    if request.method == 'GET':
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    elif request.method == 'DELETE':
+        user.delete()
+        return Response({}, status=status.HTTP_204_NO_CONTENT)
+    elif request.method == 'PATCH':
+        serializer = PatchUserSerializer(
+            user,
+            data=request.data,
+            partial=True
+        )
+        if serializer.is_valid():
+            try:
+                serializer.save()
+            except Exception:
+                return Response(
+                    serializer.errors,
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserListCreateView(generics.ListCreateAPIView):
