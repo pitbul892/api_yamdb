@@ -104,7 +104,7 @@ def create_token(request):
 
 
 @api_view(['GET', 'PATCH', 'DELETE'])
-def username_endpoint(request, username):
+def username_endpoint(request, username):    # noqa: C901
     """View-function for 'username/' endpoint."""
     if request.auth:
         if request.user.is_admin:
