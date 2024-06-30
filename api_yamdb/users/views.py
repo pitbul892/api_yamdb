@@ -28,13 +28,6 @@ FROM = 'no-reply@example.com'
 User = get_user_model()
 
 
-def get_token_for_user(user):
-    refresh = RefreshToken.for_user(user)
-    return {
-        'token': str(refresh.access_token),
-    }
-
-
 @api_view(['POST'])
 def send_confirmation_code(request):
     """Create and send confirmation code."""
@@ -52,9 +45,7 @@ def send_confirmation_code(request):
             user,
             data=request.data
         )
-    if serializer.is_valid():
-        if request.data['username'] == 'me':
-            return Response({}, status=status.HTTP_400_BAD_REQUEST)
+    if serializer.is_valid(raise_exception=True):
         serializer.save()
         user = User.objects.get(
             username=request.data['username']
@@ -68,7 +59,6 @@ def send_confirmation_code(request):
             fail_silently=True,
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
@@ -87,7 +77,8 @@ def create_token(request):
                 confirmation_code
             ):
                 if serializer.is_valid():
-                    token = get_token_for_user(user)
+                    refresh = RefreshToken.for_user(user)
+                    token = {'token': str(refresh.access_token)}
                     return Response(token, status=status.HTTP_200_OK)
                 return Response(
                     serializer.errors,
@@ -99,7 +90,7 @@ def create_token(request):
 
 
 def is_valid(serializer):
-    """Check if serializer iz valid."""
+    """Check if serializer is valid."""
     if serializer.is_valid():
         try:
             serializer.save()
