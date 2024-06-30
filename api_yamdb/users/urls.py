@@ -1,11 +1,12 @@
 from django.urls import path
 
-from .views import send_confirmation_code
-from .views import create_token
-from .views import me
-from .views import username_endpoint
-from .views import UserListCreateView
-
+from .views import (
+    UserListCreateView,
+    create_token,
+    me,
+    send_confirmation_code,
+    username_endpoint,
+)
 
 urlpatterns = [
     path('auth/signup/', send_confirmation_code),

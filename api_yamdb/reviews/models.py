@@ -1,16 +1,18 @@
 from django.contrib.auth import get_user_model
 from django.db import models
 
+from .constants import NAME_MAX_LENGTH, SLUG_MAX_LENGTH
 from .validate import validate_score, validate_year
-
 
 User = get_user_model()
 
 
 class CategoryGenreBaseModel(models.Model):
-    name = models.CharField(max_length=256, verbose_name='Название категории')
+    name = models.CharField(
+        max_length=NAME_MAX_LENGTH, verbose_name='Название категории'
+    )
     slug = models.SlugField(
-        max_length=50,
+        max_length=SLUG_MAX_LENGTH,
         unique=True,
         verbose_name='Слаг',
     )
@@ -41,12 +43,17 @@ class Genre(CategoryGenreBaseModel):
 class Title(models.Model):
     """Model Title."""
 
-    name = models.CharField(max_length=256, verbose_name='Название')
+    name = models.CharField(
+        max_length=NAME_MAX_LENGTH, verbose_name='Название'
+    )
     year = models.PositiveSmallIntegerField(
         verbose_name='Год выпуска', validators=(validate_year,)
     )
     description = models.CharField(
-        max_length=256, blank=True, null=True, verbose_name='Описание'
+        max_length=NAME_MAX_LENGTH,
+        blank=True,
+        null=True,
+        verbose_name='Описание',
     )
     genre = models.ManyToManyField(Genre, verbose_name='Жанр')
     category = models.ForeignKey(
@@ -84,7 +91,7 @@ class Review(ReviewCommentBaseModel):
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
     )
-    score = models.PositiveSmallIntegerField(
+    score = models.SmallIntegerField(
         null=True,
         validators=[
             validate_score,

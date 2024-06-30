@@ -1,27 +1,20 @@
-from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import filters
-from rest_framework import permissions
-from rest_framework import status
-from rest_framework import generics
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import permissions, status
+from rest_framework import filters, generics, permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import SignupSerializer
-from .serializers import TokenSerializer
-from .serializers import UsersSerializer
-from .serializers import UsersMeSerializer
 from .permissions import RoleAdminOrSuperuserOnly
-from .serializers import (SignupSerializer, TokenSerializer,
-                          UsersMeSerializer, UsersSerializer)
-from .serializers import PatchUserSerializer
+from .serializers import (
+    PatchUserSerializer,
+    SignupSerializer,
+    TokenSerializer,
+    UsersMeSerializer,
+    UsersSerializer,
+)
 
 SUBJECT = 'Your confirmation code'
 FROM = 'no-reply@example.com'
