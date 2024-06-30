@@ -18,19 +18,14 @@ from .serializers import SignupSerializer
 from .serializers import TokenSerializer
 from .serializers import UsersSerializer
 from .serializers import UsersMeSerializer
-from .permissions import RoleAdminOrSuperuserOnly
+from .permissions import AdminOnly
 from .serializers import (SignupSerializer, TokenSerializer,
                           UsersMeSerializer, UsersSerializer)
-from .serializers import PatchUserSerializer
 
 SUBJECT = 'Your confirmation code'
 FROM = 'no-reply@example.com'
 
 User = get_user_model()
-
-
-def create_confirmation_code(user):
-    return default_token_generator.make_token(user)
 
 
 def get_token_for_user(user):
@@ -64,7 +59,7 @@ def send_confirmation_code(request):
         user = User.objects.get(
             username=request.data['username']
         )
-        confirmation_code = create_confirmation_code(user)
+        confirmation_code = default_token_generator.make_token(user)
         send_mail(
             subject=SUBJECT,
             message=confirmation_code,
@@ -137,7 +132,7 @@ def username_endpoint(request, username):
                     user.delete()
                     return Response({}, status=status.HTTP_204_NO_CONTENT)
                 if request.method == 'PATCH':
-                    serializer = PatchUserSerializer(
+                    serializer = UsersSerializer(
                         user,
                         data=request.data,
                         partial=True
@@ -153,7 +148,7 @@ class UserListCreateView(generics.ListCreateAPIView):
     serializer_class = UsersSerializer
     permission_classes = (
         permissions.IsAuthenticated,
-        RoleAdminOrSuperuserOnly
+        AdminOnly
     )
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
@@ -161,7 +156,7 @@ class UserListCreateView(generics.ListCreateAPIView):
 
 @api_view(['GET', 'PATCH'])
 def me(request):
-    """View-function for 'me/' endpoint."""
+    """View-function for 'users/me/' endpoint."""
     if request.auth:
         try:
             user = User.objects.get(pk=request.user.id)
@@ -169,7 +164,7 @@ def me(request):
             return Response({}, status=status.HTTP_404_NOT_FOUND)
         else:
             if request.method == 'GET':
-                serializer = UsersMeSerializer(user)
+                serializer = UsersMeSerializer(user)   # UsersMeSerializer
                 return Response(serializer.data, status=status.HTTP_200_OK)
             elif request.method == 'PATCH':
                 serializer = UsersMeSerializer(
