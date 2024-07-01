@@ -3,11 +3,13 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import generics
+from rest_framework import viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import permissions, status
 from rest_framework.decorators import api_view
@@ -21,6 +23,7 @@ from .serializers import UsersMeSerializer
 from .permissions import AdminOnly
 from .serializers import (SignupSerializer, TokenSerializer,
                           UsersMeSerializer, UsersSerializer)
+from .serializers import UserSerializer
 
 SUBJECT = 'Your confirmation code'
 FROM = 'no-reply@example.com'
@@ -89,8 +92,9 @@ def create_token(request):
     return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 
-def is_valid(serializer):
-    """Check if serializer is valid."""
+"""Check if serializer is valid."""
+"""def is_valid(serializer):
+    
     if serializer.is_valid():
         try:
             serializer.save()
@@ -103,12 +107,18 @@ def is_valid(serializer):
             return Response(
                 serializer.data, status=status.HTTP_200_OK)
     return Response(
-        serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.errors, status=status.HTTP_400_BAD_REQUEST)"""
 
 
-@api_view(['GET', 'PATCH', 'DELETE'])
+"""View-function for 'user/username/' endpoint."""
+"""@api_view(['GET', 'PATCH', 'DELETE', 'PUT'])
 def username_endpoint(request, username):
-    """View-function for 'username/' endpoint."""
+    
+    print('*' * 30)
+    print('========================= username_endpoint =========================')
+    print('*' * 30)
+    if request.method == 'PUT':
+        return Response({}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
     if request.auth:
         if request.user.is_admin:
             try:
@@ -130,7 +140,7 @@ def username_endpoint(request, username):
                     )
                     return is_valid(serializer)
         return Response({}, status=status.HTTP_403_FORBIDDEN)
-    return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+    return Response({}, status=status.HTTP_401_UNAUTHORIZED)"""
 
 
 class UserListCreateView(generics.ListCreateAPIView):
@@ -144,10 +154,10 @@ class UserListCreateView(generics.ListCreateAPIView):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
 
-
-@api_view(['GET', 'PATCH'])
+"""View-function for 'users/me/' endpoint."""
+"""@api_view(['GET', 'PATCH'])
 def me(request):
-    """View-function for 'users/me/' endpoint."""
+    
     if request.auth:
         try:
             user = User.objects.get(pk=request.user.id)
@@ -169,4 +179,49 @@ def me(request):
                 return Response(
                     serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         return Response({}, status=status.HTTP_400_BAD_REQUEST)
-    return Response({}, status=status.HTTP_401_UNAUTHORIZED)
+    return Response({}, status=status.HTTP_401_UNAUTHORIZED)"""
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    serializer_class = UserSerializer
+    queryset = User.objects.all()
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+    lookup_field = 'username'
+    permission_classes = (
+        permissions.IsAuthenticated,
+        AdminOnly
+    )
+
+    @action(
+        methods=['patch', 'get'],
+        detail=False,
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def me(self, request):
+        print('*' * 30)
+        print('IT IS ME!!!')
+        print('*' * 30)
+        if request.method == 'GET':
+            serializer = UserSerializer(self.request.user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = UserSerializer(
+            self.request.user,
+            data=request.data,
+            partial=True
+        )
+        if serializer.is_valid(raise_exception=True):
+            # serializer.save(role=self.request.role, partial=True)
+            serializer.save(role=self.request.user.role, partial=True)
+            # serializer.save(partial=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        if request.method == 'PUT':
+            return Response({}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)

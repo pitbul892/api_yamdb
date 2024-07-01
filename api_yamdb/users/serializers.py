@@ -96,3 +96,43 @@ class TokenSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         instance.username = validated_data.get('username', instance.username)
         return instance
+
+    def validate(self, data):
+        if 'username' not in data:
+            raise serializers.ValidationError(
+                'username - обязательное поле.'
+            )
+        return data
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Serializer for users."""
+    username = serializers.CharField(
+        max_length=MAX_LENGTH_USERNAME,
+        required=True,
+        validators=[
+            UniqueValidator(queryset=User.objects.all()),
+            UnicodeUsernameValidator(),
+            # do_not_use_me
+        ]
+    )
+    email = serializers.EmailField(
+        max_length=MAX_LENGTH_EMAIL,
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+    """role = serializers.ChoiceField(        если раскомментить - появляется новая ошибка,
+        choices=(USER, ADMIN, MODERATOR),     Если в PATCH-запросе администратора к `/api/v1/users/{username}/` передана несуществующая роль - 
+        read_only=True                        должен вернуться ответ со статусом 400.
+    )"""
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
