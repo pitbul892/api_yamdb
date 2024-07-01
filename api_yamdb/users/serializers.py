@@ -2,14 +2,20 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from django.contrib.auth.validators import UnicodeUsernameValidator
+
+from .constants import MAX_LENGTH_USERNAME
+from .constants import MAX_LENGTH_EMAIL
+from .validators import do_not_use_me
+
 
 User = get_user_model()
 
 
-class SignupSerializer(serializers.Serializer):
-    """Serializer for username and email."""
+class UserSerializer(serializers.ModelSerializer):
+    """Serializer for users."""
     username = serializers.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_USERNAME,
         required=True,
         validators=[
             UniqueValidator(queryset=User.objects.all()),
@@ -17,7 +23,36 @@ class SignupSerializer(serializers.Serializer):
         ]
     )
     email = serializers.EmailField(
-        max_length=254,
+        max_length=MAX_LENGTH_EMAIL,
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
+
+
+class SignupSerializer(serializers.Serializer):
+    """Serializer for username and email."""
+    username = serializers.CharField(
+        max_length=MAX_LENGTH_USERNAME,
+        required=True,
+        validators=[
+            UniqueValidator(queryset=User.objects.all()),
+            UnicodeUsernameValidator(),
+            do_not_use_me
+        ]
+    )
+    email = serializers.EmailField(
+        max_length=MAX_LENGTH_EMAIL,
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
@@ -32,88 +67,15 @@ class SignupSerializer(serializers.Serializer):
         return instance
 
 
-class UsersSerializer(serializers.ModelSerializer):
-    """Serializer for users."""
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
-
-
-class PatchUserSerializer(serializers.ModelSerializer):
-    """Serializer to patch user."""
-
-    username = serializers.CharField(max_length=150, required=True)
-    first_name = serializers.CharField(max_length=150, required=False)
-    last_name = serializers.CharField(max_length=150, required=False)
-    email = serializers.EmailField(max_length=254, required=True)
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
-
-    def validate(self, data):
-        if 'username' in data:
-            if data['username'] == 'me':
-                raise serializers.ValidationError(
-                    'Используйте другой username!')
-        return data
-
-
-class UsersMeSerializer(serializers.ModelSerializer):
-    """Serializer for users."""
-
-    role = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
-
-
-#     """Serializer for token."""
-"""class TokenSerializer(serializers.ModelSerializer):
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'confirmation_code',
-        )"""
-
-
 class TokenSerializer(serializers.Serializer):
+    """Serializer for username and email."""
     username = serializers.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_USERNAME,
         required=True,
         validators=[
             UniqueValidator(queryset=User.objects.all()),
             UnicodeUsernameValidator()
         ]
-    )
-    confirmation_code = serializers.CharField(
-        max_length=254,
-        required=True
     )
 
     def create(self, validated_data):
