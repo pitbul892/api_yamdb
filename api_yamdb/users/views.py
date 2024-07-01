@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework import filters
 from rest_framework import permissions
 from rest_framework import status
-from rest_framework import generics
 from rest_framework import viewsets
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import permissions, status
@@ -16,12 +15,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .permissions import AdminOnly
 from .serializers import SignupSerializer
 from .serializers import TokenSerializer
-from .serializers import UsersSerializer
-from .permissions import AdminOnly
-from .serializers import SignupSerializer, TokenSerializer
-from .serializers import UserSerializer, UsersSerializer
+from .serializers import UserSerializer
 from .constants import SUBJECT, FROM
 
 
@@ -48,7 +45,10 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         if request.method == 'GET':
             serializer = UserSerializer(self.request.user)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
         serializer = UserSerializer(
             self.request.user,
             data=request.data,
@@ -61,9 +61,16 @@ class UserViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+            partial=partial
+        )
         if request.method == 'PUT':
-            return Response(serializer.initial_data, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+            return Response(
+                serializer.initial_data,
+                status=status.HTTP_405_METHOD_NOT_ALLOWED
+            )
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
         return Response(serializer.data)
@@ -128,15 +135,3 @@ def create_token(request):
         except Exception:
             pass
     return Response({}, status=status.HTTP_400_BAD_REQUEST)
-
-
-class UserListCreateView(generics.ListCreateAPIView):
-    """Viewset for 'user/' endpoint."""
-    queryset = User.objects.all()
-    serializer_class = UsersSerializer
-    permission_classes = (
-        permissions.IsAuthenticated,
-        AdminOnly
-    )
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('username',)

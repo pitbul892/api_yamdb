@@ -1,4 +1,4 @@
-"""Constants used in YAMDB."""
+"""Constants used in 'User' application of YAMDB."""
 
 USER = 'user'
 MODERATOR = 'moderator'

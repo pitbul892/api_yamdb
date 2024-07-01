@@ -3,15 +3,40 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.validators import UnicodeUsernameValidator
 
-from .constants import USER, ADMIN, MODERATOR
 from .constants import MAX_LENGTH_USERNAME
 from .constants import MAX_LENGTH_EMAIL
-from .constants import MAX_LENGTH_FIRST_NAME
-from .constants import MAX_LENGTH_LAST_NAME
 from .validators import do_not_use_me
 
 
 User = get_user_model()
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Serializer for users."""
+    username = serializers.CharField(
+        max_length=MAX_LENGTH_USERNAME,
+        required=True,
+        validators=[
+            UniqueValidator(queryset=User.objects.all()),
+            UnicodeUsernameValidator()
+        ]
+    )
+    email = serializers.EmailField(
+        max_length=MAX_LENGTH_EMAIL,
+        required=True,
+        validators=[UniqueValidator(queryset=User.objects.all())]
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
+        )
 
 
 class SignupSerializer(serializers.Serializer):
@@ -41,22 +66,8 @@ class SignupSerializer(serializers.Serializer):
         return instance
 
 
-class UsersSerializer(serializers.ModelSerializer):
-    """Serializer for users."""
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
-
-
 class TokenSerializer(serializers.Serializer):
+    """Serializer for username and email."""
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
         required=True,
@@ -73,39 +84,3 @@ class TokenSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         instance.username = validated_data.get('username', instance.username)
         return instance
-
-    def validate(self, data):
-        if 'username' not in data:
-            raise serializers.ValidationError(
-                'username - обязательное поле.'
-            )
-        return data
-
-
-class UserSerializer(serializers.ModelSerializer):
-    """Serializer for users."""
-    username = serializers.CharField(
-        max_length=MAX_LENGTH_USERNAME,
-        required=True,
-        validators=[
-            UniqueValidator(queryset=User.objects.all()),
-            UnicodeUsernameValidator(),
-            # do_not_use_me
-        ]
-    )
-    email = serializers.EmailField(
-        max_length=MAX_LENGTH_EMAIL,
-        required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
