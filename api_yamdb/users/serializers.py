@@ -1,7 +1,5 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
-from rest_framework import status
-from rest_framework.response import Response
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.validators import UnicodeUsernameValidator
 
@@ -58,27 +56,6 @@ class UsersSerializer(serializers.ModelSerializer):
         )
 
 
-class UsersMeSerializer(serializers.ModelSerializer):
-    """Serializer for users."""
-
-    role = serializers.ChoiceField(
-        choices=(USER, ADMIN, MODERATOR),
-        read_only=True
-    )
-    # role = serializers.CharField(read_only=True)
-
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
-
-
 class TokenSerializer(serializers.Serializer):
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
@@ -121,10 +98,6 @@ class UserSerializer(serializers.ModelSerializer):
         required=True,
         validators=[UniqueValidator(queryset=User.objects.all())]
     )
-    """role = serializers.ChoiceField(        если раскомментить - появляется новая ошибка,
-        choices=(USER, ADMIN, MODERATOR),     Если в PATCH-запросе администратора к `/api/v1/users/{username}/` передана несуществующая роль - 
-        read_only=True                        должен вернуться ответ со статусом 400.
-    )"""
 
     class Meta:
         model = User
