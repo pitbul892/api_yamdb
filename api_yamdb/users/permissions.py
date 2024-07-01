@@ -5,12 +5,8 @@ from rest_framework.response import Response
 User = get_user_model()
 
 
-class RoleAdminOrSuperuserOnly(permissions.BasePermission):
+class AdminOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        try:
-            user = request.user
-        except Exception:
-            return Response({}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            return user.is_admin or user.is_superuser
+        user = request.user
+        return user.is_admin or user.is_superuser

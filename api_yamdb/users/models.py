@@ -4,24 +4,17 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-USER = 'user'
-MODERATOR = 'moderator'
-ADMIN = 'admin'
-MAX_LENGTH_ROLE = 50
-MAX_LENGTH_USERNAME = 150
-MAX_LENGTH_EMAIL = 254
+from .constants import USER, ADMIN, MODERATOR
+from .constants import MAX_LENGTH_ROLE
+from .constants import MAX_LENGTH_USERNAME
+from .constants import MAX_LENGTH_EMAIL
+from .validators import do_not_use_me
 
 
-def do_not_use_me(value):
-    if value.lower() == 'me':
-        raise ValidationError('Do not use "me" as a username!')
-
-
-class CustUser(AbstractUser):
+class ModifiedUser(AbstractUser):
     """
     Кастомизированная модель пользователя.
     """
-    username_validator = UnicodeUsernameValidator()
 
     class Role(models.TextChoices):
         USER = USER
@@ -44,7 +37,10 @@ class CustUser(AbstractUser):
         max_length=MAX_LENGTH_USERNAME,
         unique=True,
         help_text=_('Letters, digits and @/./+/-/_ only.'),
-        validators=[username_validator, do_not_use_me],
+        validators=[
+            UnicodeUsernameValidator(),
+            do_not_use_me
+        ],
         error_messages={
             'unique': _("A user with that username already exists."),
         },
