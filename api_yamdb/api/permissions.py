@@ -10,7 +10,7 @@ class IsAuthenticatedUserAdminOrReadOnly(BasePermission):
         )
 
 
-class IsAuthorModeratorAdminOrAuth(BasePermission):
+class IsAuthenticatedAuthorModeratorAdminOrAuth(BasePermission):
     """Check Moderator, Admin, Autor and Auten for GET."""
 
     def has_permission(self, request, view):

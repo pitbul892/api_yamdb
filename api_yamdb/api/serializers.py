@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
+
 from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.validate import validate_score
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -54,13 +56,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.StringRelatedField(
         read_only=True, default=serializers.CurrentUserDefault()
     )
-    score = serializers.IntegerField()
-    title = serializers.PrimaryKeyRelatedField(read_only=True)
-
-    def validate_score(self, value):
-        if not (1 <= value <= 10):
-            raise serializers.ValidationError('Проверьте оценку!')
-        return value
+    score = serializers.IntegerField(validators=[validate_score])
 
     def validate(self, data):
         author = self.context['request'].user
@@ -75,6 +71,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Review
+        read_only_fields = ('title',)
 
 
 class CommentSerializer(serializers.ModelSerializer):

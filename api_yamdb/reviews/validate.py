@@ -8,7 +8,7 @@ def validate_year(value):
         raise ValidationError('Указанный Вами год еще не наступил')
 
 
-def validate_score(self, value):
+def validate_score(value):
     if not (1 <= value <= 10):
         raise ValidationError('Проверьте оценку!')
     return value
