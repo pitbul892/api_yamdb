@@ -8,7 +8,7 @@ from reviews.models import Category, Comment, Genre, Review, Title
 from .filters import TitleFilter
 from .permissions import (
     IsAuthenticatedUserAdminOrReadOnly,
-    IsAuthorModeratorAdminOrAuth,
+    IsAuthenticatedAuthorModeratorAdminOrAuth,
 )
 from .serializers import (
     CategorySerializer,
@@ -70,7 +70,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthorModeratorAdminOrAuth,)
+    permission_classes = (IsAuthenticatedAuthorModeratorAdminOrAuth,)
 
     http_method_names = [
         'get',
@@ -95,7 +95,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorModeratorAdminOrAuth,)
+    permission_classes = (IsAuthenticatedAuthorModeratorAdminOrAuth,)
 
     http_method_names = ['get', 'post', 'patch', 'delete']
 
