@@ -6,51 +6,54 @@ from rest_framework.pagination import LimitOffsetPagination
 from reviews.models import Category, Comment, Genre, Review, Title
 
 from .filters import TitleFilter
-from .permissions import IsAdminUserOrReadOnly, IsAuthorModeratorAdminOrAuth
+from .permissions import (
+    IsAuthenticatedUserAdminOrReadOnly,
+    IsAuthenticatedAuthorModeratorAdminOrAuth,
+)
 from .serializers import (
     CategorySerializer,
     CommentSerializer,
     GenreSerializer,
-    GetTitleSerializer,
-    PostPatchTitleSerializer,
     ReviewSerializer,
+    TitleReadSerializer,
+    TitleWriteSerializer,
 )
 
 
-class MixinViewSet(
+class CategoryGenreBaseViewSet(
     mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
-    """MixinViewSet"""
+    """CategoryGenreBaseViewSet"""
 
     lookup_field = 'slug'
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
 
 
-class CategoryViewSet(MixinViewSet):
+class CategoryViewSet(CategoryGenreBaseViewSet):
     """ViewSet for Category."""
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminUserOrReadOnly]
+    permission_classes = [IsAuthenticatedUserAdminOrReadOnly]
 
 
-class GenreViewSet(MixinViewSet):
+class GenreViewSet(CategoryGenreBaseViewSet):
     """ViewSet for Genre."""
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = [IsAdminUserOrReadOnly]
+    permission_classes = [IsAuthenticatedUserAdminOrReadOnly]
 
 
 class TitleViewSet(viewsets.ModelViewSet):
     """ViewSet for Title."""
 
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
-    permission_classes = [IsAdminUserOrReadOnly]
+    permission_classes = [IsAuthenticatedUserAdminOrReadOnly]
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
@@ -58,8 +61,8 @@ class TitleViewSet(viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         if self.request.method in permissions.SAFE_METHODS:
-            return GetTitleSerializer
-        return PostPatchTitleSerializer
+            return TitleReadSerializer
+        return TitleWriteSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -67,7 +70,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthorModeratorAdminOrAuth,)
+    permission_classes = (IsAuthenticatedAuthorModeratorAdminOrAuth,)
 
     http_method_names = [
         'get',
@@ -92,7 +95,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthorModeratorAdminOrAuth,)
+    permission_classes = (IsAuthenticatedAuthorModeratorAdminOrAuth,)
 
     http_method_names = ['get', 'post', 'patch', 'delete']
 
