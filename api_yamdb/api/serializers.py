@@ -1,6 +1,9 @@
+from datetime import date
+
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
+from reviews.constants import NAME_MAX_LENGTH
 from reviews.validate import validate_score
 from reviews.models import Category, Comment, Genre, Review, Title
 
@@ -24,7 +27,7 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     """Serializer Read Title."""
 
-    name = serializers.CharField(max_length=256)
+    name = serializers.CharField(max_length=NAME_MAX_LENGTH)
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
     rating = serializers.IntegerField()
@@ -48,6 +51,12 @@ class TitleWriteSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Title
+
+    def validate_year(self, value):
+        this_year = date.today().year
+        if value > this_year:
+            raise serializers.ValidationError('Ошибка в указанном году')
+        return value
 
 
 class ReviewSerializer(serializers.ModelSerializer):
