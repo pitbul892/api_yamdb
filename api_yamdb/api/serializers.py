@@ -11,7 +11,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ("name", "slug")
+        fields = ('name', 'slug')
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -19,7 +19,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = ("name", "slug")
+        fields = ('name', 'slug')
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
@@ -31,7 +31,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField()
 
     class Meta:
-        fields = "__all__"
+        fields = '__all__'
         model = Title
 
 
@@ -40,15 +40,15 @@ class TitleWriteSerializer(serializers.ModelSerializer):
 
     name = serializers.CharField(max_length=256)
     genre = SlugRelatedField(
-        slug_field="slug", queryset=Genre.objects.all(), many=True
+        slug_field='slug', queryset=Genre.objects.all(), many=True
     )
     category = SlugRelatedField(
-        slug_field="slug", queryset=Category.objects.all()
+        slug_field='slug', queryset=Category.objects.all()
     )
     year = serializers.IntegerField(validators=[validate_year])
 
     class Meta:
-        fields = "__all__"
+        fields = '__all__'
         model = Title
 
 
@@ -61,19 +61,19 @@ class ReviewSerializer(serializers.ModelSerializer):
     score = serializers.IntegerField(validators=[validate_score])
 
     def validate(self, data):
-        author = self.context["request"].user
-        title = self.context["view"].kwargs.get("title_id")
+        author = self.context['request'].user
+        title = self.context['view'].kwargs.get('title_id')
         if (
-            self.context["request"].method == "POST"
+            self.context['request'].method == 'POST'
             and Review.objects.filter(author=author, title=title).exists()
         ):
-            raise serializers.ValidationError("Отзыв уже существует")
+            raise serializers.ValidationError('Отзыв уже существует')
         return data
 
     class Meta:
-        fields = "__all__"
+        fields = '__all__'
         model = Review
-        read_only_fields = ("title",)
+        read_only_fields = ('title',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -82,10 +82,10 @@ class CommentSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
         default=serializers.CurrentUserDefault(),
-        slug_field="username",
+        slug_field='username',
     )
 
     class Meta:
-        fields = "__all__"
+        fields = '__all__'
         model = Comment
-        read_only_fields = ("review",)
+        read_only_fields = ('review',)
