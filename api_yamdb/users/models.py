@@ -4,10 +4,14 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .constants import USER, ADMIN, MODERATOR
-from .constants import MAX_LENGTH_ROLE
-from .constants import MAX_LENGTH_USERNAME
-from .constants import MAX_LENGTH_EMAIL
+from .constants import (
+    USER,
+    ADMIN,
+    MODERATOR,
+    MAX_LENGTH_ROLE,
+    MAX_LENGTH_USERNAME,
+    MAX_LENGTH_EMAIL
+)
 from .validators import do_not_use_me
 
 

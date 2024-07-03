@@ -1,12 +1,10 @@
 from django.contrib.auth import get_user_model
-from rest_framework import permissions, status
-from rest_framework.response import Response
+from rest_framework import permissions
 
-User = get_user_model()
+#User = get_user_model()
 
 
 class AdminOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        user = request.user
-        return user.is_admin or user.is_superuser
+        return request.user.is_admin

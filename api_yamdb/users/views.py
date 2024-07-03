@@ -6,7 +6,7 @@ from rest_framework import filters, permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import filters
+from rest_framework import filters, serializers
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import viewsets
@@ -24,6 +24,10 @@ from .constants import SUBJECT, FROM
 
 
 User = get_user_model()
+
+
+def response_ok(serializer):
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -46,10 +50,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         if request.method == 'GET':
             serializer = UserSerializer(self.request.user)
-            return Response(
-                serializer.data,
-                status=status.HTTP_200_OK
-            )
+            return response_ok(serializer)
         serializer = UserSerializer(
             self.request.user,
             data=request.data,
@@ -57,7 +58,7 @@ class UserViewSet(viewsets.ModelViewSet):
         )
         if serializer.is_valid(raise_exception=True):
             serializer.save(role=self.request.user.role, partial=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return response_ok(serializer)
 
     def update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
@@ -94,20 +95,21 @@ def send_confirmation_code(request):
             user,
             data=request.data
         )
-    if serializer.is_valid(raise_exception=True):
-        serializer.save()
-        user = User.objects.get(
-            username=request.data['username']
-        )
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            subject=SUBJECT,
-            message=confirmation_code,
-            from_email=FROM,
-            recipient_list=[request.data['email']],
-            fail_silently=True,
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    # serializer = SignupSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    user = User.objects.get(
+        username=request.data['username']
+    )
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        subject=SUBJECT,
+        message=confirmation_code,
+        from_email=FROM,
+        recipient_list=[request.data['email']],
+        fail_silently=True,
+    )
+    return response_ok(serializer)
 
 
 @api_view(['POST'])
