@@ -41,6 +41,7 @@ class UserViewSet(viewsets.ModelViewSet):
         permissions.IsAuthenticated,
         AdminOnly
     )
+    http_method_names = ['patch', 'get', 'post', 'delete']
 
     @action(
         methods=['patch', 'get'],
@@ -59,23 +60,6 @@ class UserViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             serializer.save(role=self.request.user.role, partial=True)
             return response_ok(serializer)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance,
-            data=request.data,
-            partial=partial
-        )
-        if request.method == 'PUT':
-            return Response(
-                serializer.initial_data,
-                status=status.HTTP_405_METHOD_NOT_ALLOWED
-            )
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
 
 
 @api_view(['POST'])
@@ -127,7 +111,7 @@ def create_token(request):
                 user,
                 confirmation_code
             ):
-                if serializer.is_valid():
+                if serializer.is_valid(raise_exception=True):
                     refresh = RefreshToken.for_user(user)
                     token = {'token': str(refresh.access_token)}
                     return Response(token, status=status.HTTP_200_OK)
