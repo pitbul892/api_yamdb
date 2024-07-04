@@ -40,49 +40,27 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class SignupSerializer(serializers.Serializer):
-    """Serializer for username and email."""
-    username = serializers.CharField(
-        max_length=MAX_LENGTH_USERNAME,
-        required=True,
-        validators=[
-            UniqueValidator(queryset=User.objects.all()),
-            UnicodeUsernameValidator(),
-            do_not_use_me
-        ]
-    )
-    email = serializers.EmailField(
-        max_length=MAX_LENGTH_EMAIL,
-        required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
-    )
+class SignupSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('username', 'email')
 
     def create(self, validated_data):
-        # user = User.objects.create(**validated_data)
-        user, _ = User.objects.get_or_create(**validated_data)
+        user, _ = User.objects.get_or_create(
+            username=validated_data['username'],
+            defaults=validated_data,
+        )
         return user
-
-    def update(self, instance, validated_data):
-        instance.email = validated_data.get('email', instance.email)
-        instance.username = validated_data.get('username', instance.username)
-        return instance
 
 
 class TokenSerializer(serializers.Serializer):
-    """Serializer for username and email."""
+    """Serializer for token."""
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
         required=True,
         validators=[
-            UniqueValidator(queryset=User.objects.all()),
             UnicodeUsernameValidator()
         ]
     )
-
-    def create(self, validated_data):
-        user = User.objects.create(**validated_data)
-        return user
-
-    def update(self, instance, validated_data):
-        instance.username = validated_data.get('username', instance.username)
-        return instance
+    confirmation_code = serializers.CharField(required=True)
