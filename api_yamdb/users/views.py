@@ -6,7 +6,7 @@ from rest_framework import filters, permissions, status
 from rest_framework.decorators import api_view
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework import filters, serializers
+from rest_framework import filters, mixins
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework import viewsets
@@ -62,8 +62,41 @@ class UserViewSet(viewsets.ModelViewSet):
             return response_ok(serializer)
 
 
+class SendConfirmationCodeViewSet(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    queryset = User.objects.all()
+    serializer_class = SignupSerializer
+    #http_method_names = ['post']
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+
+    def perform_create(self, serializer):
+        print('*' * 30)
+        print('perform_create()')
+        print('*' * 30)
+        serializer.save()
+        user = User.objects.get(
+            username=self.request.data['username']
+        )
+        confirmation_code = default_token_generator.make_token(user)
+        send_mail(
+            subject=SUBJECT,
+            message=confirmation_code,
+            from_email=FROM,
+            recipient_list=[self.request.data['email']],
+            fail_silently=True,
+    )
+
+
 @api_view(['POST'])
-def send_confirmation_code(request):
+def send_confirmation_code_0(request):
     """Create and send confirmation code."""
     try:
         user = User.objects.get(
@@ -79,7 +112,41 @@ def send_confirmation_code(request):
             user,
             data=request.data
         )
-    # serializer = SignupSerializer(data=request.data)
+    serializer = SignupSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    user = User.objects.get(
+        username=request.data['username']
+    )
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        subject=SUBJECT,
+        message=confirmation_code,
+        from_email=FROM,
+        recipient_list=[request.data['email']],
+        fail_silently=True,
+    )
+    return response_ok(serializer)
+
+
+@api_view(['POST'])
+def send_confirmation_code(request):
+    """Create and send confirmation code."""
+    """if 1:
+        user, _ = User.objects.get_or_create(
+            username=request.data['username'],
+            email=request.data['email']
+        )"""
+    """except Exception:
+        serializer = SignupSerializer(
+            data=request.data
+        )
+    else:
+        serializer = SignupSerializer(
+            user,
+            data=request.data
+        )"""
+    serializer = SignupSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     serializer.save()
     user = User.objects.get(

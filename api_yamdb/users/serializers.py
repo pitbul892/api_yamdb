@@ -19,7 +19,8 @@ class UserSerializer(serializers.ModelSerializer):
         required=True,
         validators=[
             UniqueValidator(queryset=User.objects.all()),
-            UnicodeUsernameValidator()
+            UnicodeUsernameValidator(),
+            do_not_use_me
         ]
     )
     email = serializers.EmailField(
@@ -40,8 +41,17 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class SignupSerializer(serializers.ModelSerializer):
+class SignupSerializer(UserSerializer):
     """Serializer for sign up."""
+    username = serializers.CharField(
+        max_length=MAX_LENGTH_USERNAME,
+        required=True,
+        validators=[
+            UniqueValidator(queryset=User.objects.all()),
+            UnicodeUsernameValidator(),
+            do_not_use_me
+        ]
+    )
 
     class Meta:
         model = User
@@ -50,8 +60,9 @@ class SignupSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user, _ = User.objects.get_or_create(
             username=validated_data['username'],
-            defaults=validated_data,
+            email=validated_data['email']
         )
+        # user, _ = User.objects.get_or_create(**validated_data)
         return user
 
 
