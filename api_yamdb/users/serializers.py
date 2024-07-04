@@ -41,6 +41,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SignupSerializer(serializers.ModelSerializer):
+    """Serializer for sign up."""
 
     class Meta:
         model = User
