@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from django.contrib.auth.validators import UnicodeUsernameValidator
 
 from .constants import MAX_LENGTH_USERNAME
 from .constants import MAX_LENGTH_EMAIL
@@ -19,7 +18,8 @@ class UserSerializer(serializers.ModelSerializer):
         required=True,
         validators=[
             UniqueValidator(queryset=User.objects.all()),
-            UnicodeUsernameValidator()
+            UnicodeUsernameValidator(),
+            do_not_use_me
         ]
     )
     email = serializers.EmailField(
@@ -41,12 +41,11 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class SignupSerializer(serializers.Serializer):
-    """Serializer for username and email."""
+    """Serializer for sign up."""
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
         required=True,
         validators=[
-            UniqueValidator(queryset=User.objects.all()),
             UnicodeUsernameValidator(),
             do_not_use_me
         ]
@@ -54,34 +53,46 @@ class SignupSerializer(serializers.Serializer):
     email = serializers.EmailField(
         max_length=MAX_LENGTH_EMAIL,
         required=True,
-        validators=[UniqueValidator(queryset=User.objects.all())]
     )
 
-    def create(self, validated_data):
-        user = User.objects.create(**validated_data)
-        return user
+    class Meta:
+        model = User
+        fields = ('username', 'email')
 
-    def update(self, instance, validated_data):
-        instance.email = validated_data.get('email', instance.email)
-        instance.username = validated_data.get('username', instance.username)
-        return instance
+    def validate(self, data):
+        try:
+            user = User.objects.get(email=data['email'])
+        except Exception:
+            pass
+        else:
+            if user.username != data['username']:
+                raise serializers.ValidationError(
+                    'The email already exists!')
+        try:
+            user = User.objects.get(username=data['username'])
+        except Exception:
+            pass
+        else:
+            if user.email != data['email']:
+                raise serializers.ValidationError(
+                    'The username already exists!')
+        return data
+
+    def create(self, validated_data):
+        user, _ = User.objects.get_or_create(
+            username=validated_data['username'],
+            email=validated_data['email']
+        )
+        return user
 
 
 class TokenSerializer(serializers.Serializer):
-    """Serializer for username and email."""
+    """Serializer for token."""
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
         required=True,
         validators=[
-            UniqueValidator(queryset=User.objects.all()),
             UnicodeUsernameValidator()
         ]
     )
-
-    def create(self, validated_data):
-        user = User.objects.create(**validated_data)
-        return user
-
-    def update(self, instance, validated_data):
-        instance.username = validated_data.get('username', instance.username)
-        return instance
+    confirmation_code = serializers.CharField(required=True)
