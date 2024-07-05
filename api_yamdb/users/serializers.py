@@ -3,8 +3,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .constants import MAX_LENGTH_USERNAME
-from .constants import MAX_LENGTH_EMAIL
+from .constants import MAX_LENGTH_EMAIL, MAX_LENGTH_USERNAME
 from .validators import do_not_use_me
 
 

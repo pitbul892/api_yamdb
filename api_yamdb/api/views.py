@@ -7,8 +7,8 @@ from reviews.models import Category, Comment, Genre, Review, Title
 
 from .filters import TitleFilter
 from .permissions import (
+    IsAuthenticatedAuthorModeratorAdmin,
     IsAuthenticatedUserAdminOrReadOnly,
-    IsAuthenticatedAuthorModeratorAdminOrAuth,
 )
 from .serializers import (
     CategorySerializer,
@@ -21,10 +21,10 @@ from .serializers import (
 
 
 class CategoryGenreBaseViewSet(
-    mixins.ListModelMixin,
     mixins.CreateModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
+    mixins.ListModelMixin,
 ):
     """CategoryGenreBaseViewSet"""
 
@@ -70,8 +70,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = (IsAuthenticatedAuthorModeratorAdminOrAuth,)
-
+    permission_classes = (IsAuthenticatedAuthorModeratorAdmin,)
     http_method_names = [
         'get',
         'post',
@@ -95,8 +94,7 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
-    permission_classes = (IsAuthenticatedAuthorModeratorAdminOrAuth,)
-
+    permission_classes = (IsAuthenticatedAuthorModeratorAdmin,)
     http_method_names = ['get', 'post', 'patch', 'delete']
 
     def get_review(self):
