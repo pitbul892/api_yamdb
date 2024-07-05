@@ -2,7 +2,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
-from django.contrib.auth.validators import UnicodeUsernameValidator
 
 from .constants import MAX_LENGTH_USERNAME
 from .constants import MAX_LENGTH_EMAIL
@@ -41,7 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 
-class SignupSerializer(serializers.ModelSerializer):
+class SignupSerializer(serializers.Serializer):
     """Serializer for sign up."""
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME,
@@ -80,18 +79,10 @@ class SignupSerializer(serializers.ModelSerializer):
         return data
 
     def create(self, validated_data):
-        try:
-            user = User.objects.get(email=validated_data['email'])
-        except Exception:
-            user, _ = User.objects.get_or_create(
-                username=validated_data['username'],
-                email=validated_data['email']
-            )
-        else:
-            if user.username == validated_data['username']:
-                return user
-
-        # user, _ = User.objects.get_or_create(**validated_data)
+        user, _ = User.objects.get_or_create(
+            username=validated_data['username'],
+            email=validated_data['email']
+        )
         return user
 
 
