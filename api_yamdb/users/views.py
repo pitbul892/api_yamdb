@@ -2,28 +2,32 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, status
-from rest_framework.decorators import api_view
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework import filters
-from rest_framework import permissions
-from rest_framework import status
-from rest_framework import viewsets
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework import permissions, status
-from rest_framework.decorators import api_view
+from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .permissions import AdminOnly
-from .serializers import SignupSerializer
-from .serializers import TokenSerializer
-from .serializers import UserSerializer
+from .serializers import (
+    SignupSerializer,
+    TokenSerializer,
+    UserSerializer
+)
 from .constants import SUBJECT, FROM
 
 
 User = get_user_model()
+
+
+def response_200(serializer):
+    """Return HTTP_200_OK response."""
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+def response_400(serializer=None):
+    """Return HTTP_400_BAD_REQUEST response."""
+    if serializer:
+        return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+    return Response({}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -37,6 +41,7 @@ class UserViewSet(viewsets.ModelViewSet):
         permissions.IsAuthenticated,
         AdminOnly
     )
+    http_method_names = ['patch', 'get', 'post', 'delete']
 
     @action(
         methods=['patch', 'get'],
@@ -46,10 +51,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         if request.method == 'GET':
             serializer = UserSerializer(self.request.user)
-            return Response(
-                serializer.data,
-                status=status.HTTP_200_OK
-            )
+            return response_200(serializer)
         serializer = UserSerializer(
             self.request.user,
             data=request.data,
@@ -57,57 +59,37 @@ class UserViewSet(viewsets.ModelViewSet):
         )
         if serializer.is_valid(raise_exception=True):
             serializer.save(role=self.request.user.role, partial=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return response_200(serializer)
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance,
-            data=request.data,
-            partial=partial
-        )
-        if request.method == 'PUT':
-            return Response(
-                serializer.initial_data,
-                status=status.HTTP_405_METHOD_NOT_ALLOWED
-            )
+
+class SendConfirmationCodeViewSet(
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Viewset for users/signup/ endpoint."""
+    queryset = User.objects.all()
+    serializer_class = SignupSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-        return Response(serializer.data)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
 
-
-@api_view(['POST'])
-def send_confirmation_code(request):
-    """Create and send confirmation code."""
-    try:
-        user = User.objects.get(
-            username=request.data['username'],
-            email=request.data['email']
-        )
-    except Exception:
-        serializer = SignupSerializer(
-            data=request.data
-        )
-    else:
-        serializer = SignupSerializer(
-            user,
-            data=request.data
-        )
-    if serializer.is_valid(raise_exception=True):
+    def perform_create(self, serializer):
         serializer.save()
         user = User.objects.get(
-            username=request.data['username']
+            username=self.request.data['username']
         )
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
             subject=SUBJECT,
             message=confirmation_code,
             from_email=FROM,
-            recipient_list=[request.data['email']],
+            recipient_list=[self.request.data['email']],
             fail_silently=True,
-        )
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    )
 
 
 @api_view(['POST'])
@@ -125,14 +107,11 @@ def create_token(request):
                 user,
                 confirmation_code
             ):
-                if serializer.is_valid():
+                if serializer.is_valid(raise_exception=True):
                     refresh = RefreshToken.for_user(user)
                     token = {'token': str(refresh.access_token)}
                     return Response(token, status=status.HTTP_200_OK)
-                return Response(
-                    serializer.errors,
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                return response_400(serializer)
         except Exception:
             pass
-    return Response({}, status=status.HTTP_400_BAD_REQUEST)
+    return response_400()
