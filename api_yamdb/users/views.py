@@ -7,13 +7,13 @@ from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .constants import SUBJECT, FROM
 from .permissions import AdminOnly
 from .serializers import (
     SignupSerializer,
     TokenSerializer,
     UserSerializer
 )
-from .constants import SUBJECT, FROM
 
 
 User = get_user_model()
@@ -22,6 +22,7 @@ User = get_user_model()
 def response_200(serializer):
     """Return HTTP_200_OK response."""
     return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 def response_400(serializer=None):
     """Return HTTP_400_BAD_REQUEST response."""
@@ -75,7 +76,9 @@ class SendConfirmationCodeViewSet(
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_200_OK, headers=headers)
+        return Response(
+            serializer.data, status=status.HTTP_200_OK, headers=headers
+        )
 
     def perform_create(self, serializer):
         serializer.save()
@@ -89,7 +92,7 @@ class SendConfirmationCodeViewSet(
             from_email=FROM,
             recipient_list=[self.request.data['email']],
             fail_silently=True,
-    )
+        )
 
 
 @api_view(['POST'])

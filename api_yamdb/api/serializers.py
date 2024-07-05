@@ -2,8 +2,8 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
 from reviews.constants import NAME_MAX_LENGTH
-from reviews.validate import validate_score, validate_year
 from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.validate import validate_score, validate_year
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -38,7 +38,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
 class TitleWriteSerializer(serializers.ModelSerializer):
     """Serializer Write Title."""
 
-    name = serializers.CharField(max_length=256)
+    name = serializers.CharField(max_length=NAME_MAX_LENGTH)
     genre = SlugRelatedField(
         slug_field='slug', queryset=Genre.objects.all(), many=True
     )

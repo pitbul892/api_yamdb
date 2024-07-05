@@ -1,4 +1,4 @@
-from rest_framework.permissions import SAFE_METHODS, BasePermission
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
 class IsAuthenticatedUserAdminOrReadOnly(BasePermission):
@@ -10,7 +10,7 @@ class IsAuthenticatedUserAdminOrReadOnly(BasePermission):
         )
 
 
-class IsAuthenticatedAuthorModeratorAdminOrAuth(BasePermission):
+class IsAuthenticatedAuthorModeratorAdmin(BasePermission):
     """Check Moderator, Admin, Autor and Auten for GET."""
 
     def has_permission(self, request, view):

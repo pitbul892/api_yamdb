@@ -1,9 +1,11 @@
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from .views import SendConfirmationCodeViewSet
-from .views import create_token
-from .views import UserViewSet
+from .views import (
+    create_token,
+    SendConfirmationCodeViewSet,
+    UserViewSet
+)
 
 
 router = SimpleRouter()
