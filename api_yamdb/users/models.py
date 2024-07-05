@@ -3,10 +3,14 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .constants import USER, ADMIN, MODERATOR
-from .constants import MAX_LENGTH_ROLE
-from .constants import MAX_LENGTH_USERNAME
-from .constants import MAX_LENGTH_EMAIL
+from .constants import (
+    ADMIN,
+    MAX_LENGTH_EMAIL,
+    MAX_LENGTH_USERNAME,
+    MAX_LENGTH_ROLE,
+    MODERATOR,
+    USER,
+)
 from .validators import do_not_use_me
 
 

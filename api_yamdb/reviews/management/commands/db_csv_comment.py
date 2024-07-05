@@ -5,12 +5,12 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from reviews.models import Category, Comment, Genre, Review, Title
-from users.models import CustUser
+from users.models import ModifiedUser
 
 
 class Command(BaseCommand):
     csv_files = {
-        'users.csv': CustUser,
+        'users.csv': ModifiedUser,
         'category.csv': Category,
         'genre.csv': Genre,
         'titles.csv': Title,
@@ -28,17 +28,17 @@ class Command(BaseCommand):
 
     def select_optios(self, **options):
         if options['user']:
-            self.csv_files = {'users.csv': CustUser}
+            self.csv_files = {'users.csv': ModifiedUser}
         if options['category']:
-            self.csv_files = {'category.csv': CustUser}
+            self.csv_files = {'category.csv': Category}
         if options['genre']:
-            self.csv_files = {'genre.csv': CustUser}
+            self.csv_files = {'genre.csv': Genre}
         if options['titles']:
-            self.csv_files = {'titles.csv': CustUser}
+            self.csv_files = {'titles.csv': Title}
         if options['review']:
-            self.csv_files = {'review.csv': CustUser}
+            self.csv_files = {'review.csv': Review}
         if options['comments']:
-            self.csv_files = {'comments.csv': CustUser}
+            self.csv_files = {'comments.csv': Comment}
         return self.csv_files
 
     def handle(self, *args, **options):
@@ -51,13 +51,12 @@ class Command(BaseCommand):
                     encoding='utf-8',
                 )
             except OSError:
-                print(f'The file {csv_file} could not be opened')
+                self.stdout.write(f'The file {csv_file} could not be opened')
                 continue
             with f:
                 reader = csv.DictReader(f)
                 try:
-                    for row in reader:
-                        model.objects.create(**row)
+                    model.objects.bulk_create(model(**row) for row in reader)
                     self.stdout.write(
                         self.style.SUCCESS(
                             f'{model.__name__} imported from {csv_file}'
