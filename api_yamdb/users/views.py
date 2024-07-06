@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, status, viewsets
+from rest_framework import filters, permissions, status, viewsets, views
 from rest_framework.decorators import action, api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -50,32 +50,6 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class SendConfirmationCodeViewSet(viewsets.GenericViewSet):
-    """Viewset for users/signup/ endpoint."""
-    queryset = User.objects.all()
-    serializer_class = SignupSerializer
-    http_method_names = ['post']
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        user = User.objects.get(
-            username=self.request.data['username']
-        )
-        confirmation_code = default_token_generator.make_token(user)
-        send_mail(
-            subject=SUBJECT,
-            message=confirmation_code,
-            from_email=FROM,
-            recipient_list=[self.request.data['email']],
-            fail_silently=True,
-        )
-        return Response(
-            serializer.data, status=status.HTTP_200_OK
-        )
-
-
 @api_view(['POST'])
 def create_token(request):
     """Create token for auth user."""
@@ -91,3 +65,22 @@ def create_token(request):
         token = {'token': str(refresh.access_token)}
         return Response(token, status=status.HTTP_200_OK)
     return Response(serializer.data, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SendConfirmationCodeView(views.APIView):
+    """View for users/signup/ endpoint."""
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request):
+        serializer = SignupSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        confirmation_code = default_token_generator.make_token(user)
+        send_mail(
+            subject=SUBJECT,
+            message=confirmation_code,
+            from_email=FROM,
+            recipient_list=[self.request.data['email']],
+            fail_silently=True,
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
