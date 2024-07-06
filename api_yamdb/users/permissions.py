@@ -7,5 +7,4 @@ User = get_user_model()
 class AdminOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        user = request.user
-        return user.is_admin or user.is_superuser
+        return request.user.is_admin
